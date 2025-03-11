@@ -1,5 +1,6 @@
 package com.food_delivery_app.food_delivery_back_end.controller;
 
+import com.food_delivery_app.food_delivery_back_end.dto.LoginDto;
 import com.food_delivery_app.food_delivery_back_end.dto.RegisterUserDto;
 import com.food_delivery_app.food_delivery_back_end.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,7 +21,7 @@ public class AuthController {
     private AuthService userService;
     @GetMapping("/hello")
     public String hello() {
-        return "Hello World!";
+        return "Hello World!!";
     }
 
     @PostMapping("/register")
@@ -28,5 +29,13 @@ public class AuthController {
     public ResponseEntity<String> register(@RequestBody RegisterUserDto registerUserDto){
         String response = userService.register(registerUserDto);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/login")
+    @Operation(summary = "Login a user", description = "Return token to authenticate user")
+    public ResponseEntity<String> login(@RequestBody LoginDto loginDto){
+        String response = userService.login(loginDto);
+        System.out.println("Token: " + response);
+        return  ResponseEntity.ok(response);
     }
 }

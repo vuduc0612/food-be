@@ -1,8 +1,10 @@
 package com.food_delivery_app.food_delivery_back_end.service.Impl;
 
+import com.food_delivery_app.food_delivery_back_end.dto.LoginDto;
 import com.food_delivery_app.food_delivery_back_end.dto.RegisterUserDto;
 import com.food_delivery_app.food_delivery_back_end.entity.User;
 import com.food_delivery_app.food_delivery_back_end.repostitory.UserRepository;
+import com.food_delivery_app.food_delivery_back_end.security.JwtTokenProvider;
 import com.food_delivery_app.food_delivery_back_end.service.AuthService;
 import lombok.AllArgsConstructor;
 
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 public class AuthServiceImpl implements AuthService {
     private PasswordEncoder passwordEncoder;
     private UserRepository userRepository;
+    private JwtTokenProvider jwtTokenProvider;
     @Override
     public String register(RegisterUserDto userAuthDto) {
         String email = userAuthDto.getEmail();
@@ -31,5 +34,19 @@ public class AuthServiceImpl implements AuthService {
         newUser.setPassword(passwordEncoder.encode(password));
         userRepository.save(newUser);
         return "User registered successfully";
+    }
+
+    @Override
+    public String login(LoginDto loginDto) {
+        String email = loginDto.getEmail();
+        if(!userRepository.existsByEmail(email)){
+            return "User not found";
+        }
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if(!passwordEncoder.matches(loginDto.getPassword(), user.getPassword())){
+            return "Wrong password";
+        }
+        return jwtTokenProvider.generateToken(email);
     }
 }
