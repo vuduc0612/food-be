@@ -1,5 +1,6 @@
-package com.food_delivery_app.food_delivery_back_end.security;
+package com.food_delivery_app.food_delivery_back_end.utils;
 
+import com.food_delivery_app.food_delivery_back_end.constant.RoleType;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
@@ -19,7 +20,7 @@ public class JwtTokenProvider {
     @Value("${jwtExpirationMs}")
     private Long jwtExpirationInMs;
     private Key key;
-    public String generateToken(String email){
+    public String generateToken(String email, RoleType roleType){
         Date curentDate = new Date();
         Date expiredate = new Date(curentDate.getTime() + jwtExpirationInMs);
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
@@ -27,6 +28,7 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .setSubject(email)
                 .setIssuedAt(curentDate)
+                .claim("role", roleType.name())
                 .setExpiration(expiredate)
                 .signWith(key, SignatureAlgorithm.HS512)
                 .compact();

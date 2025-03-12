@@ -1,7 +1,8 @@
 package com.food_delivery_app.food_delivery_back_end.security;
 
-import com.food_delivery_app.food_delivery_back_end.entity.User;
-import com.food_delivery_app.food_delivery_back_end.repostitory.UserRepository;
+import com.food_delivery_app.food_delivery_back_end.modules.auth.entity.Account;
+import com.food_delivery_app.food_delivery_back_end.modules.auth.repository.AccountRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,12 +13,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class CustomUserDetailService implements UserDetailsService {
     @Autowired
-    private UserRepository userRepository;
+    private AccountRepository accountRepository;
     @Override
+    @Transactional
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email)
+        Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
-        return UserPrincipal.create(user);
+        return UserPrincipal.create(account);
 
     }
 }

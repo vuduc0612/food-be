@@ -1,5 +1,6 @@
-package com.food_delivery_app.food_delivery_back_end.entity;
+package com.food_delivery_app.food_delivery_back_end.modules.user.entity;
 
+import com.food_delivery_app.food_delivery_back_end.modules.auth.entity.Account;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,21 +21,13 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String email;
+    @OneToOne
+    @JoinColumn(name = "account_id")
+    private Account account;
 
-    @Column(nullable = false, unique = true)
-    private String phoneNumber;
-
-    @Column(nullable = false)
-    private String password;
-
-    @Column()
     private String username;
 
-    @Column()
     private String address;
 
-    @Column()
-    private LocalDateTime createdAt = LocalDateTime.now();
+
 }

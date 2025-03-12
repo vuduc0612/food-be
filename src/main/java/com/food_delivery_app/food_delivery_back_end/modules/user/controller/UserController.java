@@ -1,8 +1,7 @@
-package com.food_delivery_app.food_delivery_back_end.controller;
+package com.food_delivery_app.food_delivery_back_end.modules.user.controller;
 
-import com.food_delivery_app.food_delivery_back_end.dto.UserDto;
-import com.food_delivery_app.food_delivery_back_end.entity.User;
-import com.food_delivery_app.food_delivery_back_end.service.UserService;
+import com.food_delivery_app.food_delivery_back_end.modules.user.dto.UserDto;
+import com.food_delivery_app.food_delivery_back_end.modules.user.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

@@ -1,4 +1,4 @@
-package com.food_delivery_app.food_delivery_back_end.dto;
+package com.food_delivery_app.food_delivery_back_end.modules.user.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

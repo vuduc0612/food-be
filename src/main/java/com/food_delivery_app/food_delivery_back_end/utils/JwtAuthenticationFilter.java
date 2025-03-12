@@ -1,4 +1,4 @@
-package com.food_delivery_app.food_delivery_back_end.security;
+package com.food_delivery_app.food_delivery_back_end.utils;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -27,6 +27,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (StringUtils.hasText(jwt) && tokenProvider.validationToken(jwt)) {
             String email = tokenProvider.getEmailFromToken(jwt);
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            System.out.println("UserDetails: " + userDetails.getUsername() + " " + userDetails.getAuthorities());
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                     userDetails, null, userDetails.getAuthorities());
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

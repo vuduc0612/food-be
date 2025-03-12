@@ -1,12 +1,11 @@
-package com.food_delivery_app.food_delivery_back_end.service.Impl;
+package com.food_delivery_app.food_delivery_back_end.modules.user.service.Impl;
 
-import com.food_delivery_app.food_delivery_back_end.dto.UserDto;
-import com.food_delivery_app.food_delivery_back_end.entity.User;
-import com.food_delivery_app.food_delivery_back_end.repostitory.UserRepository;
-import com.food_delivery_app.food_delivery_back_end.service.UserService;
+import com.food_delivery_app.food_delivery_back_end.modules.user.dto.UserDto;
+import com.food_delivery_app.food_delivery_back_end.modules.user.entity.User;
+import com.food_delivery_app.food_delivery_back_end.modules.user.repository.UserRepository;
+import com.food_delivery_app.food_delivery_back_end.modules.user.service.UserService;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
