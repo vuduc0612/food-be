@@ -1,6 +1,9 @@
 package com.food_delivery_app.food_delivery_back_end.modules.auth.service.impl;
 
 import com.food_delivery_app.food_delivery_back_end.constant.RoleType;
+import com.food_delivery_app.food_delivery_back_end.exception.AccountNotFoundException;
+import com.food_delivery_app.food_delivery_back_end.exception.ForbiddenException;
+import com.food_delivery_app.food_delivery_back_end.exception.InvalidCredentialsException;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.dto.LoginDto;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.dto.RegisterDto;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.entity.Account;
@@ -17,11 +20,12 @@ import com.food_delivery_app.food_delivery_back_end.modules.auth.service.AuthSer
 import jakarta.persistence.EntityExistsException;
 import lombok.AllArgsConstructor;
 
-import org.springframework.security.authentication.BadCredentialsException;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -43,14 +47,14 @@ public class AuthServiceImpl implements AuthService {
         if (existingAccount.isPresent()) {
             account = existingAccount.get();
 
-            // Kiểm tra xem account đã có role này chưa
+            // check existing role
             boolean hasRole = accountRoleRepository.existsByAccountAndRoleType(account, roleType);
             if (hasRole) {
-                return "This account already has " + roleType + " role";
+                return "Account already has this role";
             }
         }
         else {
-            // Tạo account mới nếu email chưa tồn tại
+            // create account
             account = new Account();
             account.setEmail(registerDto.getEmail());
             account.setPassword(passwordEncoder.encode(registerDto.getPassword()));
@@ -59,22 +63,19 @@ public class AuthServiceImpl implements AuthService {
             account.setCreatedAt(LocalDateTime.now());
             accountRepository.save(account);
         }
-        // Thêm role mới cho account
+        // add role to account
         AccountRole accountRole = new AccountRole();
         accountRole.setAccount(account);
         accountRole.setRoleType(roleType);
         accountRole.setActive(true);
         accountRoleRepository.save(accountRole);
 
-        // Tạo hoặc cập nhật profile tương ứng với roleType
+        // create user or restaurant
         System.out.println(roleType);
         switch (roleType) {
             case ROLE_USER:
                 createUser(account, registerDto);
                 break;
-//            case ROLE_DRIVER:
-////                createDriverProfile(account, registerDto);
-////                break;
             case ROLE_RESTAURANT:
                 createRestaurant(account, registerDto);
                 break;
@@ -87,28 +88,29 @@ public class AuthServiceImpl implements AuthService {
         String email = loginDto.getEmail();
 
         if(!accountRepository.existsByEmail(email)){
-            return "User not found";
+            throw new AccountNotFoundException("Account not found with email: " + email);
         }
+
         Account account = accountRepository.findByEmail(loginDto.getEmail())
-                .orElseThrow(() -> new RuntimeException("Account not found"));
-        // Kiểm tra mật khẩu
+                .orElseThrow(() -> new AccountNotFoundException("Account not found with email: " + email));
+
+        // check password
         if (!passwordEncoder.matches(loginDto.getPassword(), account.getPassword())) {
-            return "Wrong password";
+            throw new InvalidCredentialsException("Wrong password");
         }
+
         boolean hasRole = account.getAccountRoles().stream()
                 .anyMatch(r -> r.getRoleType() == roleType && r.isActive());
         if (!hasRole) {
-//            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-//                    .body(new ErrorResponse("You don't have access to this role"));
-            return "You don't have access to this role";
+            throw new ForbiddenException("You don't have access to this role");
         }
+
         account.setLastLogin(LocalDateTime.now());
         accountRepository.save(account);
         return jwtTokenProvider.generateToken(email, roleType);
     }
 
     private void createUser(Account account, RegisterDto dto) {
-        // Kiểm tra xem account đã có user profile chưa
         if (account.getUser() == null) {
             User user = new User();
             user.setAccount(account);
@@ -119,7 +121,6 @@ public class AuthServiceImpl implements AuthService {
 
 
     private void createRestaurant(Account account, RegisterDto dto) {
-        // Kiểm tra xem account đã có restaurant profile chưa
         if (account.getRestaurant() == null) {
             Restaurant restaurant = new Restaurant();
             restaurant.setAccount(account);

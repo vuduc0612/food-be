@@ -35,7 +35,7 @@ public class AuthController {
     public ResponseEntity<String> loginUser(@RequestBody LoginDto loginDto){
         String response = authService.login(loginDto, RoleType.ROLE_USER);
         System.out.println("Token: " + response);
-        return  ResponseEntity.ok(response);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/restaurant/register")
@@ -44,11 +44,12 @@ public class AuthController {
         String response = authService.register(registerUserDto, RoleType.ROLE_RESTAURANT);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
+
     @PostMapping("restaurant/login")
     @Operation(summary = "Login a user", description = "Return token to authenticate user")
     public ResponseEntity<String> loginRestaurant(@RequestBody LoginDto loginDto){
         String response = authService.login(loginDto, RoleType.ROLE_RESTAURANT);
         System.out.println("Token: " + response);
-        return  ResponseEntity.ok(response);
+        return ResponseEntity.ok(response);
     }
 }
