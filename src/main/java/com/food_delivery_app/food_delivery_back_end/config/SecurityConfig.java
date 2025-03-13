@@ -6,6 +6,7 @@ import com.food_delivery_app.food_delivery_back_end.utils.JwtAuthenticationFilte
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -35,6 +36,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("api/auth/**" ,"/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/user/**").hasAuthority("ROLE_USER")
+                        .requestMatchers("/api/restaurant/**").hasAuthority("ROLE_RESTAURANT")
+                        .requestMatchers(HttpMethod.POST, "/api/dish").hasAuthority("ROLE_RESTAURANT")
+                        .requestMatchers(HttpMethod.GET, "/api/dish").permitAll()
                         .anyRequest().authenticated()
                 );
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
