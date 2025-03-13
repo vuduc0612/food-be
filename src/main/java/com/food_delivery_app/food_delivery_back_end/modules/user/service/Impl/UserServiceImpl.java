@@ -6,6 +6,7 @@ import com.food_delivery_app.food_delivery_back_end.modules.user.repository.User
 import com.food_delivery_app.food_delivery_back_end.modules.user.service.UserService;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

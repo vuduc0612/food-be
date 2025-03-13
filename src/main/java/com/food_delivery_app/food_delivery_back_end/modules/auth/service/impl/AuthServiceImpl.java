@@ -11,12 +11,15 @@ import com.food_delivery_app.food_delivery_back_end.modules.restaurant.entity.Re
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.repostitory.RestaurantRepository;
 import com.food_delivery_app.food_delivery_back_end.modules.user.entity.User;
 import com.food_delivery_app.food_delivery_back_end.modules.user.repository.UserRepository;
+import com.food_delivery_app.food_delivery_back_end.security.UserPrincipal;
 import com.food_delivery_app.food_delivery_back_end.utils.JwtTokenProvider;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.service.AuthService;
 import jakarta.persistence.EntityExistsException;
 import lombok.AllArgsConstructor;
 
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -122,5 +125,30 @@ public class AuthServiceImpl implements AuthService {
             restaurant.setAccount(account);
             restaurantRepository.save(restaurant);
         }
+    }
+    @Override
+    public User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("Authentication: " + authentication);
+        if(authentication != null && authentication.getPrincipal() instanceof UserPrincipal){
+            UserPrincipal userPrincipal =  (UserPrincipal) authentication.getPrincipal();
+            System.out.println("UserPrincipal: " + userPrincipal);
+            Long accountId = userPrincipal.getId();
+            return userRepository.findByAccountId(accountId)
+                    .orElseThrow(() -> new EntityExistsException("User not found"));
+        }
+        return null;
+    }
+
+    @Override
+    public Restaurant getCurrentRestaurant() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication != null && authentication.getPrincipal() instanceof UserPrincipal){
+            UserPrincipal userPrincipal =  (UserPrincipal) authentication.getPrincipal();
+            Long accountId = userPrincipal.getId();
+            return restaurantRepository.findByAccountId(accountId)
+                    .orElseThrow(() -> new EntityExistsException("Restaurant not found"));
+        }
+        return null;
     }
 }
