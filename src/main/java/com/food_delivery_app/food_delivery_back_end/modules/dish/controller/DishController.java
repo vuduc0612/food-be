@@ -17,10 +17,12 @@ import java.util.List;
 public class DishController {
     private AuthService authService;
     private DishService dishService;
+
     @GetMapping()
     public List<DishDto> getAllDishes(){
         return dishService.getAllDishes();
     }
+
     @PostMapping()
     public DishDto addDish(@RequestBody DishDto dishDto){
         Restaurant restaurant = authService.getCurrentRestaurant();

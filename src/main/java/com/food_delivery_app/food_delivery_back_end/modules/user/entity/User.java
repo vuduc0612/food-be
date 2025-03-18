@@ -1,6 +1,7 @@
 package com.food_delivery_app.food_delivery_back_end.modules.user.entity;
 
 import com.food_delivery_app.food_delivery_back_end.modules.auth.entity.Account;
+import com.food_delivery_app.food_delivery_back_end.modules.order.entity.Order;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,6 +10,8 @@ import lombok.Setter;
 
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @AllArgsConstructor
@@ -29,5 +32,6 @@ public class User {
 
     private String address;
 
-
+    @OneToMany(mappedBy = "user")
+    private Set<Order> orders = new HashSet<>();
 }
