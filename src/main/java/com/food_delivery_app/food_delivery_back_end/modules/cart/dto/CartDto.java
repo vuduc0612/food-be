@@ -1,5 +1,6 @@
-package com.food_delivery_app.food_delivery_back_end.modules.order.dto;
+package com.food_delivery_app.food_delivery_back_end.modules.cart.dto;
 
+import com.food_delivery_app.food_delivery_back_end.modules.cart.entity.CartItem;
 import lombok.Getter;
 import lombok.Setter;
 

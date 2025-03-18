@@ -1,9 +1,8 @@
 package com.food_delivery_app.food_delivery_back_end.modules.order.controller;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreType;
-import com.food_delivery_app.food_delivery_back_end.modules.order.dto.CartDto;
-import com.food_delivery_app.food_delivery_back_end.modules.order.dto.CartItem;
-import com.food_delivery_app.food_delivery_back_end.modules.order.entity.Cart;
+import com.food_delivery_app.food_delivery_back_end.modules.cart.dto.CartDto;
+import com.food_delivery_app.food_delivery_back_end.modules.cart.entity.CartItem;
+import com.food_delivery_app.food_delivery_back_end.modules.cart.entity.Cart;
 import com.food_delivery_app.food_delivery_back_end.modules.order.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -19,7 +18,7 @@ public class OrderController {
     private final OrderService orderService;
     @PostMapping("/cart/add")
     @Operation(summary = "Add to cart", description = "Returns the cart")
-    public ResponseEntity<CartDto> createOrder(
+    public ResponseEntity<CartDto> addToCart(
             @RequestParam Long idDish,
             @RequestParam Integer quantity) {
         System.out.println("idDish: " + idDish + " quantity: " + quantity);
