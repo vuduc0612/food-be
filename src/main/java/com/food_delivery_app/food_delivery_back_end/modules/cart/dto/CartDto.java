@@ -9,6 +9,7 @@ import java.util.List;
 @Getter
 @Setter
 public class CartDto {
+    private Long userId;
     private Long restaurantId;
     private List<CartItem> items;
     private Double totalAmount;

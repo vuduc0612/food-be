@@ -27,9 +27,6 @@ public class RedisCartService implements CartService {
     @Override
     public Cart getCart(Long userId) {
         String cartKey = getCartKey(userId);
-//        Cart cart = (Cart) redisTemplate.opsForValue().get(cartKey);
-//
-//        return cart != null ? cart : new Cart();
         Object obj = redisTemplate.opsForValue().get(cartKey);
 
         if (obj instanceof LinkedHashMap<?,?>) {
@@ -37,7 +34,13 @@ public class RedisCartService implements CartService {
             return objectMapper.convertValue(obj, Cart.class);
         }
 
-        return obj != null ? (Cart) obj : new Cart();
+        if(obj == null){
+            Cart cart = new Cart();
+            cart.setUserId(userId);
+
+            return cart;
+        }
+        return (Cart) obj;
     }
 
     @Override
@@ -54,6 +57,7 @@ public class RedisCartService implements CartService {
 
         if(cart.getItems().isEmpty()) {
             cart.setRestaurantId(dish.getRestaurant().getId());
+
         } else if(!cart.getRestaurantId().equals(dish.getRestaurant().getId())) {
             throw new IllegalArgumentException("Cart can only contain items from one restaurant");
         }
@@ -106,8 +110,15 @@ public class RedisCartService implements CartService {
     @Override
     public void clearCart(Long userId) {
         Cart cart = getCart(userId);
+        cart.setRestaurantId(null);
         cart.getItems().clear();
         cart.setTotalAmount(0.0);
         saveCart(userId, cart);
+    }
+
+    @Override
+    public void removeCart(Long userId) {
+        String cartKey = getCartKey(userId);
+        redisTemplate.delete(cartKey);
     }
 }

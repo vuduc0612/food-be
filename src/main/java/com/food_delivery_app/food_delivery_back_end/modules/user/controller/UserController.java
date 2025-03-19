@@ -23,6 +23,6 @@ public class UserController {
     public List<UserDto> getAllUsers(){
         User user = authService.getCurrentUser();
         System.out.println(user.getId());
-        return userService.getAllUsers();
+        return userService.getAllUsers(10);
     }
 }

@@ -68,10 +68,15 @@ public class AuthServiceImpl implements AuthService {
         accountRole.setAccount(account);
         accountRole.setRoleType(roleType);
         accountRole.setActive(true);
+        account.setCreatedAt(LocalDateTime.now());
+
+        if(registerDto.getPhoneNumber() != null){
+            account.setPhoneNumber(registerDto.getPhoneNumber());
+        }
         accountRoleRepository.save(accountRole);
 
         // create user or restaurant
-        System.out.println(roleType);
+        //System.out.println(roleType);
         switch (roleType) {
             case ROLE_USER:
                 createUser(account, registerDto);
@@ -130,10 +135,10 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        System.out.println("Authentication: " + authentication);
+        //System.out.println("Authentication: " + authentication);
         if(authentication != null && authentication.getPrincipal() instanceof UserPrincipal){
             UserPrincipal userPrincipal =  (UserPrincipal) authentication.getPrincipal();
-            System.out.println("UserPrincipal: " + userPrincipal);
+            //System.out.println("UserPrincipal: " + userPrincipal);
             Long accountId = userPrincipal.getId();
             return userRepository.findByAccountId(accountId)
                     .orElseThrow(() -> new EntityExistsException("User not found"));

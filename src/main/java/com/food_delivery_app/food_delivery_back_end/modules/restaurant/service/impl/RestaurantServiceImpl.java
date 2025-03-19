@@ -3,27 +3,29 @@ package com.food_delivery_app.food_delivery_back_end.modules.restaurant.service.
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantDto;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.entity.Restaurant;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.repostitory.RestaurantRepository;
+import com.food_delivery_app.food_delivery_back_end.modules.restaurant.response.RestaurantResponse;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.service.RestaurantService;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
-@NoArgsConstructor
+@RequiredArgsConstructor
 public class RestaurantServiceImpl implements RestaurantService {
-    private ModelMapper modelMapper;
-    private RestaurantRepository restaurantRepository;
+    private final ModelMapper modelMapper;
+    private final RestaurantRepository restaurantRepository;
     @Override
-    public List<RestaurantDto> getAllRestaurants() {
-        List<Restaurant> restaurantList = restaurantRepository.findAll();
-        return restaurantList.stream()
-                .map((restaurant) -> modelMapper.map(restaurant, RestaurantDto.class))
-                .collect(Collectors.toList());
+    public List<RestaurantResponse> getAllRestaurants(int limit) {
+        Pageable pageable = PageRequest.of(0, limit);
+        List<RestaurantResponse> restaurantList = restaurantRepository.findAllRestaurantsWithNameAndPhoneAndAddress(pageable);
+        return restaurantList;
     }
 
     @Override

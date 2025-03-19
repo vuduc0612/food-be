@@ -7,7 +7,8 @@ import org.springframework.stereotype.Service;
 @Service
 public interface OrderService {
     void addToCart(Long idDish, Integer quantity);
-    Order placeOrder(Long userId);
+    Order placeOrder();
     Cart getCart();
-
+    void clearCart();
+    void removeCart();
 }

@@ -1,7 +1,5 @@
 package com.food_delivery_app.food_delivery_back_end.config;
 
-
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.food_delivery_app.food_delivery_back_end.utils.JwtAuthenticationFilter;
@@ -21,14 +19,11 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+
 
 
 @Configuration
@@ -42,14 +37,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-//                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-//                .csrf(csrf -> csrf.disable())
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("api/auth/**" ,"/swagger-ui/**", "/v3/api-docs/**").permitAll()
 //                        .requestMatchers("/api/user/**").hasAuthority("ROLE_USER")
-                        .requestMatchers("/api/restaurant/**").hasAuthority("ROLE_RESTAURANT")
+                        .requestMatchers("/api/restaurants/update").hasAuthority("ROLE_RESTAURANT")
+                        .requestMatchers(HttpMethod.GET, "/api/restaurants").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/dish").hasAuthority("ROLE_RESTAURANT")
                         .requestMatchers(HttpMethod.GET, "/api/dish").permitAll()
                         .anyRequest().authenticated()
@@ -74,11 +68,6 @@ public class SecurityConfig {
                             response.getWriter().write(mapper.writeValueAsString(errorResponse));
                         })
                 );
-//                .exceptionHandling(ex -> ex
-//                        .authenticationEntryPoint(authenticationEntryPoint())
-//                        .accessDeniedHandler(accessDeniedHandler())
-//                );
-
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

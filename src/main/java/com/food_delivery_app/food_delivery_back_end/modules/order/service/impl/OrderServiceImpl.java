@@ -22,10 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
+
 
 
 @Service
@@ -52,10 +49,21 @@ public class OrderServiceImpl implements OrderService {
         return cartService.getCart(authService.getCurrentUser().getId());
     }
 
+    @Override
+    public void clearCart() {
+        cartService.clearCart(authService.getCurrentUser().getId());
+    }
+
+    @Override
+    public void removeCart() {
+        cartService.removeCart(authService.getCurrentUser().getId());
+    }
     //place an order
     @Override
     @Transactional
-    public Order placeOrder(Long userId) {
+    public Order placeOrder() {
+        User user = authService.getCurrentUser();
+        Long userId = user.getId();
         User customer = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -75,19 +83,19 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalAmount(cart.getTotalAmount());
         Order savedOrder = orderRepository.save(order);
 
-        List<OrderDetail> orderDetails = cart.getItems().stream()
-                .map(cartItem -> {
-                    OrderDetail orderDetail = new OrderDetail();
-                    orderDetail.setDish(dishRepository.findById(cartItem.getIdDish())
-                            .orElseThrow(() -> new RuntimeException("Dish not found"))
-                    );
-                    orderDetail.setOrder(savedOrder);
-                    orderDetail.setQuantity(cartItem.getQuantity());
-                    return orderDetail;
+        for(CartItem cartItem : cart.getItems()){
+            OrderDetail orderDetail = new OrderDetail();
+            orderDetail.setDish(dishRepository.findById(cartItem.getIdDish())
+                    .orElseThrow(() -> new RuntimeException("Dish not found"))
+            );
+            orderDetail.setOrder(savedOrder);
+            savedOrder.getOrderDetails().add(orderDetail);
+            orderDetail.setQuantity(cartItem.getQuantity());
+            orderDetailRepository.save(orderDetail);
 
-                })
-                .collect(Collectors.toList());
-        orderDetailRepository.saveAll(orderDetails);
-        return savedOrder;
+        }
+        cartService.clearCart(userId);
+
+        return orderRepository.save(savedOrder);
     }
 }

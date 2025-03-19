@@ -34,7 +34,7 @@ public class AuthController {
     @Operation(summary = "Login a user", description = "Return token to authenticate user")
     public ResponseEntity<String> loginUser(@RequestBody LoginDto loginDto){
         String response = authService.login(loginDto, RoleType.ROLE_USER);
-        System.out.println("Token: " + response);
+        //System.out.println("Token: " + response);
         return ResponseEntity.ok(response);
     }
 
@@ -49,7 +49,7 @@ public class AuthController {
     @Operation(summary = "Login a user", description = "Return token to authenticate user")
     public ResponseEntity<String> loginRestaurant(@RequestBody LoginDto loginDto){
         String response = authService.login(loginDto, RoleType.ROLE_RESTAURANT);
-        System.out.println("Token: " + response);
+        //System.out.println("Token: " + response);
         return ResponseEntity.ok(response);
     }
 }

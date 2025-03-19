@@ -9,5 +9,6 @@ public interface CartService {
     void updateItemQuantity(Long userId, Long dishId, Integer quantity);
     void removeItem(Long userId, Long dishId);
     void clearCart(Long userId);
+    void removeCart(Long userId);
 
 }

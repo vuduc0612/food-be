@@ -14,7 +14,7 @@ import java.util.List;
 @Getter
 @Setter
 public class Cart {
-
+    private Long userId;
     private Long restaurantId;
     private List<CartItem> items = new ArrayList<>();
     private Double totalAmount = 0.0;
