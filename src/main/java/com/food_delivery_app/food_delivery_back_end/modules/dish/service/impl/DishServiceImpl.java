@@ -8,6 +8,9 @@ import com.food_delivery_app.food_delivery_back_end.modules.restaurant.entity.Re
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.repostitory.RestaurantRepository;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,11 +24,11 @@ public class DishServiceImpl implements DishService {
     private DishRepository dishRepository;
     private RestaurantRepository restaurantRepository;
     @Override
-    public List<DishDto> getAllDishes() {
-        List<Dish> dishes =  dishRepository.findAll();
-        return dishes.stream()
-                .map((dish) -> modelMapper.map(dish, DishDto.class))
-                .collect(Collectors.toList());
+    public Page<DishDto> getAllDishes(int page, int limit) {
+        Pageable pageable = PageRequest.of(page, limit);
+        Page<Dish> dishPage = dishRepository.findAll(pageable);
+
+        return dishPage.map(dish -> modelMapper.map(dish, DishDto.class));
     }
 
     @Override

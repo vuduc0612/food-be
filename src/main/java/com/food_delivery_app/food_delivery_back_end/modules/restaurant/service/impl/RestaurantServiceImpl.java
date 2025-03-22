@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,11 +22,12 @@ import java.util.stream.Collectors;
 public class RestaurantServiceImpl implements RestaurantService {
     private final ModelMapper modelMapper;
     private final RestaurantRepository restaurantRepository;
+
     @Override
-    public List<RestaurantResponse> getAllRestaurants(int limit) {
-        Pageable pageable = PageRequest.of(0, limit);
-        List<RestaurantResponse> restaurantList = restaurantRepository.findAllRestaurantsWithNameAndPhoneAndAddress(pageable);
-        return restaurantList;
+    public Page<RestaurantResponse> getAllRestaurants(int page, int limit) {
+        Pageable pageable = PageRequest.of(page, limit);
+        Page<RestaurantResponse> restaurants = restaurantRepository.findAllRestaurantsWithNameAndPhoneAndAddress(pageable);
+        return restaurants.map(restaurant -> modelMapper.map(restaurant, RestaurantResponse.class));
     }
 
     @Override

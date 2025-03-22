@@ -13,5 +13,5 @@ public class OrderDetailResponse {
     private Long id;
     private String dishName;
     private Integer quantity;
-    private Double price;
+    private Double totalPrice;
 }

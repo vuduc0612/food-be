@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -25,28 +26,31 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import java.time.LocalDateTime;
 
 
-
 @Configuration
 public class SecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+    @Value("${api.prefix}")
+    private String apiPrefix;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("api/auth/**" ,"/swagger-ui/**", "/v3/api-docs/**").permitAll()
-//                        .requestMatchers("/api/user/**").hasAuthority("ROLE_USER")
-                        .requestMatchers("/api/restaurants/update").hasAuthority("ROLE_RESTAURANT")
-                        .requestMatchers(HttpMethod.GET, "/api/restaurants").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/dish").hasAuthority("ROLE_RESTAURANT")
-                        .requestMatchers(HttpMethod.GET, "/api/dish").permitAll()
-                        .anyRequest().authenticated()
+                                .requestMatchers("api/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                                .requestMatchers(HttpMethod.GET,
+                                        String.format("%s/restaurants/**", apiPrefix)).permitAll()
+                                .requestMatchers(HttpMethod.GET,
+                                        String.format("%s/dishes/**", apiPrefix)).permitAll()
+
+                                .anyRequest().authenticated()
                 )
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, authException) -> {
@@ -73,16 +77,19 @@ public class SecurityConfig {
 
         return http.build();
     }
+
     @Bean()
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
+
     @Data
     @AllArgsConstructor
     private static class ErrorResponse {
         private int status;
         private String message;
         private LocalDateTime timestamp = LocalDateTime.now();
+
         public ErrorResponse(int status, String message) {
             this.status = status;
             this.message = message;

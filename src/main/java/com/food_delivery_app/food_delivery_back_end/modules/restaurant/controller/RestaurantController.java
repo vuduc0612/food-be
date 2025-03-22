@@ -5,28 +5,50 @@ import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.Resta
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.entity.Restaurant;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.response.RestaurantResponse;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.service.RestaurantService;
+import com.food_delivery_app.food_delivery_back_end.response.ResponseObject;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("api/restaurants")
+@RequestMapping("${api.prefix}/restaurants")
 @AllArgsConstructor
 public class RestaurantController {
     private RestaurantService restaurantService;
     private AuthService authService;
-    @GetMapping
-    public List<RestaurantResponse> getRestaurants() {
-        return restaurantService.getAllRestaurants(10);
 
+    //Get all restaurants
+    @GetMapping("")
+    public ResponseEntity<ResponseObject> getRestaurants(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int limit
+    ) {
+        Page<RestaurantResponse> restaurants = restaurantService.getAllRestaurants(page, limit);
+        return ResponseEntity.ok(
+                ResponseObject.builder()
+                        .message("Get restaurants successfully")
+                        .data(restaurants)
+                        .status(HttpStatus.OK)
+                        .build()
+        );
     }
 
-    @PutMapping("/update")
-    public RestaurantDto updateRestaurant(@RequestBody RestaurantDto restaurantDto) {
+    //Update restaurant
+    @PutMapping("")
+    public ResponseEntity<ResponseObject> updateRestaurant(@RequestBody RestaurantDto restaurantDto) {
         Restaurant restaurant = authService.getCurrentRestaurant();
-        return restaurantService.updateRestaurant(restaurant.getId(), restaurantDto);
-    }
 
+        return ResponseEntity.ok(
+                ResponseObject.builder()
+                        .data(restaurant)
+                        .message("Update restaurant successfully")
+                        .status(HttpStatus.OK)
+                        .build()
+        );
+    }
 
 }

@@ -20,6 +20,8 @@ public class OrderDetail {
 
     private Integer quantity;
 
+    private Double price;
+
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;

@@ -11,6 +11,8 @@ import com.food_delivery_app.food_delivery_back_end.modules.order.entity.Order;
 import com.food_delivery_app.food_delivery_back_end.modules.order.entity.OrderDetail;
 import com.food_delivery_app.food_delivery_back_end.modules.order.repository.OrderDetailRepository;
 import com.food_delivery_app.food_delivery_back_end.modules.order.repository.OrderRepository;
+import com.food_delivery_app.food_delivery_back_end.modules.order.response.OrderDetailResponse;
+import com.food_delivery_app.food_delivery_back_end.modules.order.response.OrderResponse;
 import com.food_delivery_app.food_delivery_back_end.modules.order.service.OrderService;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.entity.Restaurant;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.repostitory.RestaurantRepository;
@@ -18,16 +20,19 @@ import com.food_delivery_app.food_delivery_back_end.modules.user.entity.User;
 import com.food_delivery_app.food_delivery_back_end.modules.user.repository.UserRepository;
 import jakarta.persistence.*;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
+    private final ModelMapper modelMapper;
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final DishRepository dishRepository;
@@ -58,10 +63,11 @@ public class OrderServiceImpl implements OrderService {
     public void removeCart() {
         cartService.removeCart(authService.getCurrentUser().getId());
     }
+
     //place an order
     @Override
     @Transactional
-    public Order placeOrder() {
+    public OrderResponse placeOrder() {
         User user = authService.getCurrentUser();
         Long userId = user.getId();
         User customer = userRepository.findById(userId)
@@ -83,6 +89,7 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalAmount(cart.getTotalAmount());
         Order savedOrder = orderRepository.save(order);
 
+
         for(CartItem cartItem : cart.getItems()){
             OrderDetail orderDetail = new OrderDetail();
             orderDetail.setDish(dishRepository.findById(cartItem.getIdDish())
@@ -91,11 +98,39 @@ public class OrderServiceImpl implements OrderService {
             orderDetail.setOrder(savedOrder);
             savedOrder.getOrderDetails().add(orderDetail);
             orderDetail.setQuantity(cartItem.getQuantity());
+            orderDetail.setPrice(cartItem.getPrice());
             orderDetailRepository.save(orderDetail);
 
         }
+        OrderResponse orderResponse = modelMapper.map(savedOrder, OrderResponse.class);
+        orderResponse.setOrderDetailResponses(
+            savedOrder.getOrderDetails().stream()
+                    .map(orderDetail -> modelMapper.map(orderDetail, OrderDetailResponse.class))
+                    .collect(Collectors.toList())
+        );
         cartService.clearCart(userId);
 
-        return orderRepository.save(savedOrder);
+        return orderResponse;
     }
+
+    @Override
+    public List<OrderResponse> getAllOrder() {
+        Restaurant restaurant = authService.getCurrentRestaurant();
+        List<Order> orders = orderRepository.findByRestaurant(restaurant);
+
+        List<OrderResponse> orderResponses = orders.stream()
+                .map(order -> {
+                        OrderResponse orderResponse = modelMapper.map(order, OrderResponse.class);
+                        orderResponse.setOrderDetailResponses(
+                                order.getOrderDetails().stream()
+                                        .map(orderDetail -> modelMapper.map(orderDetail, OrderDetailResponse.class))
+                                        .collect(Collectors.toList())
+                        );
+                        return orderResponse;
+                })
+                .collect(Collectors.toList());
+
+        return orderResponses;
+    }
+
 }

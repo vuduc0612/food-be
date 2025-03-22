@@ -3,6 +3,7 @@ package com.food_delivery_app.food_delivery_back_end.modules.restaurant.repostit
 
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.entity.Restaurant;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.response.RestaurantResponse;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -16,5 +17,5 @@ import java.util.Optional;
 public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
     Optional<Restaurant> findByAccountId(Long accountId);
     @Query("SELECT new com.food_delivery_app.food_delivery_back_end.modules.restaurant.response.RestaurantResponse(r.id, r.name, r.address, r.account.email) FROM Restaurant r")
-    List<RestaurantResponse> findAllRestaurantsWithNameAndPhoneAndAddress(Pageable pageable);
+    Page<RestaurantResponse> findAllRestaurantsWithNameAndPhoneAndAddress(Pageable pageable);
 }

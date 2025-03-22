@@ -19,13 +19,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/orders")
+@RequestMapping("${api.prefix}/orders")
 @Tag(name = "Orders API", description = "Provides endpoints for orders")
 @RequiredArgsConstructor
 public class OrderController {
     private final OrderService orderService;
 
-    @PostMapping("/cart/add")
+    //CART
+    @PostMapping("/cart")
     @Operation(summary = "Add to cart", description = "Returns the cart")
     public ResponseEntity<CartDto> addToCart(
             @RequestParam Long idDish,
@@ -67,32 +68,6 @@ public class OrderController {
         return ResponseEntity.ok(cartDto);
     }
 
-    @PostMapping("/place")
-    @Operation(summary = "Place order", description = "Returns the order")
-    public ResponseEntity<OrderResponse> placeOrder() {
-        // get list of order details response from list of order details
-        Order order = orderService.placeOrder();
-        List<OrderDetailResponse> orderDetailResponses = new ArrayList<>();
-
-        for(OrderDetail orderDetail : order.getOrderDetails()){
-            System.out.println("Dish: " + orderDetail.getDish().getName() + " Quantity: " + orderDetail.getQuantity());
-            OrderDetailResponse orderDetailResponse = new OrderDetailResponse();
-            orderDetailResponse.setId(orderDetail.getId());
-            orderDetailResponse.setQuantity(orderDetail.getQuantity());
-            orderDetailResponse.setDishName(orderDetail.getDish().getName());
-            orderDetailResponses.add(orderDetailResponse);
-        }
-
-        //covert order to order response
-        OrderResponse orderResponse = new OrderResponse();
-        orderResponse.setId(order.getId());
-        orderResponse.setStatus(order.getStatus());
-        orderResponse.setTotalAmount(order.getTotalAmount());
-        orderResponse.setOrderDetailResponses(orderDetailResponses);
-
-        return ResponseEntity.ok(orderResponse);
-    }
-
     @PostMapping("/cart/clear")
     @Operation(summary = "Clear cart", description = "Clears the cart")
     public ResponseEntity<String> clearCart() {
@@ -106,4 +81,18 @@ public class OrderController {
         orderService.removeCart();
         return ResponseEntity.ok("Cart removed");
     }
+
+    // ORDER
+    @GetMapping("")
+    @Operation(summary = "Get all orders", description = "Returns all orders")
+    public ResponseEntity<List<OrderResponse>> getAllOrder(){
+        return ResponseEntity.ok(orderService.getAllOrder());
+    }
+
+    @PostMapping("")
+    @Operation(summary = "Place order", description = "Returns the order")
+    public ResponseEntity<OrderResponse> placeOrder() {
+        return ResponseEntity.ok(orderService.placeOrder());
+    }
+
 }
