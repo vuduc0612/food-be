@@ -44,13 +44,18 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
-                                .requestMatchers("api/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                                .requestMatchers(HttpMethod.GET,
-                                        String.format("%s/restaurants/**", apiPrefix)).permitAll()
-                                .requestMatchers(HttpMethod.GET,
-                                        String.format("%s/dishes/**", apiPrefix)).permitAll()
+                        .requestMatchers(
+                                String.format("%s/auth/**", apiPrefix),
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**").permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                String.format("%s/users/**", apiPrefix)).permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                String.format("%s/restaurants/**", apiPrefix)).permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                String.format("%s/dishes/**", apiPrefix)).permitAll()
 
-                                .anyRequest().authenticated()
+                        .anyRequest().authenticated()
                 )
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, authException) -> {

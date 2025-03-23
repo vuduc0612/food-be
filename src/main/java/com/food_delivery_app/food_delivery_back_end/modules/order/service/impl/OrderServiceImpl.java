@@ -7,6 +7,7 @@ import com.food_delivery_app.food_delivery_back_end.modules.dish.entity.Dish;
 import com.food_delivery_app.food_delivery_back_end.modules.dish.repository.DishRepository;
 import com.food_delivery_app.food_delivery_back_end.modules.cart.entity.Cart;
 import com.food_delivery_app.food_delivery_back_end.modules.cart.entity.CartItem;
+import com.food_delivery_app.food_delivery_back_end.modules.order.dto.OrderDto;
 import com.food_delivery_app.food_delivery_back_end.modules.order.entity.Order;
 import com.food_delivery_app.food_delivery_back_end.modules.order.entity.OrderDetail;
 import com.food_delivery_app.food_delivery_back_end.modules.order.repository.OrderDetailRepository;
@@ -21,6 +22,9 @@ import com.food_delivery_app.food_delivery_back_end.modules.user.repository.User
 import jakarta.persistence.*;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +46,9 @@ public class OrderServiceImpl implements OrderService {
     private final AuthService authService;
     private final CartService cartService;
 
+    /*
+      -----CART-----
+     */
     //add dish into the current user's cart
     @Override
     public void addToCart(Long dishId, Integer quantity) {
@@ -64,6 +71,10 @@ public class OrderServiceImpl implements OrderService {
         cartService.removeCart(authService.getCurrentUser().getId());
     }
 
+
+    /*
+        -----ORDER----
+     */
     //place an order
     @Override
     @Transactional
@@ -113,13 +124,15 @@ public class OrderServiceImpl implements OrderService {
         return orderResponse;
     }
 
+    //Get all order of user
     @Override
-    public List<OrderResponse> getAllOrder() {
-        Restaurant restaurant = authService.getCurrentRestaurant();
-        List<Order> orders = orderRepository.findByRestaurant(restaurant);
+    public Page<OrderResponse> getAllOrderOfUser(Long userId, int page, int limit) {
+        Pageable pageable = PageRequest.of(page, limit);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Page<Order> orders = orderRepository.findByUser(user, pageable);
 
-        List<OrderResponse> orderResponses = orders.stream()
-                .map(order -> {
+        Page<OrderResponse> orderResponses = orders.map(order -> {
                         OrderResponse orderResponse = modelMapper.map(order, OrderResponse.class);
                         orderResponse.setOrderDetailResponses(
                                 order.getOrderDetails().stream()
@@ -127,10 +140,59 @@ public class OrderServiceImpl implements OrderService {
                                         .collect(Collectors.toList())
                         );
                         return orderResponse;
-                })
-                .collect(Collectors.toList());
+                });
 
         return orderResponses;
+    }
+
+    //Get alll order of restaurant
+    @Override
+    public Page<OrderResponse> getAllOrderOfRestaurant(Long restaurantId, int page, int limit) {
+        Pageable pageable = PageRequest.of(page, limit);
+        Restaurant restaurant = restaurantRepository.findById(restaurantId)
+                .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+        Page<Order> orders = orderRepository.findByRestaurant(restaurant, pageable);
+
+        Page<OrderResponse> orderResponses = orders.map(order -> {
+            OrderResponse orderResponse = modelMapper.map(order, OrderResponse.class);
+            orderResponse.setOrderDetailResponses(
+                    order.getOrderDetails().stream()
+                            .map(orderDetail -> modelMapper.map(orderDetail, OrderDetailResponse.class))
+                            .collect(Collectors.toList())
+            );
+            return orderResponse;
+        });
+
+        return orderResponses;
+    }
+
+    @Override
+    public OrderResponse getOrder(Long id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        OrderResponse orderResponse = modelMapper.map(order, OrderResponse.class);
+        orderResponse.setOrderDetailResponses(
+                order.getOrderDetails().stream()
+                        .map(orderDetail -> modelMapper.map(orderDetail, OrderDetailResponse.class))
+                        .collect(Collectors.toList())
+        );
+        return orderResponse;
+
+    }
+
+    @Override
+    public OrderResponse updateOrder(Long id, OrderDto order) {
+        Order existingOrder = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        existingOrder.setStatus(order.getStatus());
+        return modelMapper.map(orderRepository.save(existingOrder), OrderResponse.class);
+    }
+
+    @Override
+    public void deleteOrder(Long id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        orderRepository.delete(order);
     }
 
 }

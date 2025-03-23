@@ -24,10 +24,6 @@ public class Restaurant {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne()
-    @JoinColumn(name = "account_id")
-    private Account account;
-
     private String name;
 
     private String address;

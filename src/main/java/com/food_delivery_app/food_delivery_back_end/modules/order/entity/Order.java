@@ -36,7 +36,6 @@ public class Order {
     @JoinColumn(name = "restaurant_id", nullable = false)
     private Restaurant restaurant;
 
-    @OneToMany(mappedBy = "order")
-    private Set<OrderDetail> orderDetails = new HashSet<>();
+
 
 }
