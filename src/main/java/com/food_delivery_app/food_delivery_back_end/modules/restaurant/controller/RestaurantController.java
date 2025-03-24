@@ -1,11 +1,16 @@
 package com.food_delivery_app.food_delivery_back_end.modules.restaurant.controller;
 
+import com.food_delivery_app.food_delivery_back_end.constant.RoleType;
+import com.food_delivery_app.food_delivery_back_end.modules.auth.dto.RegisterDto;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.service.AuthService;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantDto;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.entity.Restaurant;
+import com.food_delivery_app.food_delivery_back_end.modules.restaurant.repostitory.RestaurantRepository;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.response.RestaurantResponse;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.service.RestaurantService;
+import com.food_delivery_app.food_delivery_back_end.response.CustomPageResponse;
 import com.food_delivery_app.food_delivery_back_end.response.ResponseObject;
+import com.github.javafaker.Faker;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -13,39 +18,87 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Locale;
 
 @RestController
 @RequestMapping("${api.prefix}/restaurants")
 @AllArgsConstructor
 public class RestaurantController {
+    private final RestaurantRepository restaurantRepository;
     private RestaurantService restaurantService;
     private AuthService authService;
 
-    //Get all restaurants
-    @GetMapping("")
-    public ResponseEntity<ResponseObject> getRestaurants(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int limit
-    ) {
-        Page<RestaurantResponse> restaurants = restaurantService.getAllRestaurants(page, limit);
+    //Fake data
+    @GetMapping("/fake-data")
+    public ResponseEntity<ResponseObject> fakeData() {
+        Faker faker = new Faker(new Locale("vi"));
+        for (int i = 0; i < 100; i++) {
+            String email = faker.internet().emailAddress();
+            String phone = faker.phoneNumber().cellPhone();
+
+            RegisterDto registerDto = new RegisterDto(email, phone, "password123");
+            authService.register(registerDto, RoleType.ROLE_RESTAURANT);
+
+            List<Restaurant> restaurants = restaurantRepository.findAll();
+            for(Restaurant restaurant : restaurants){
+                restaurant.setName(faker.company().name());
+                restaurant.setAddress(faker.address().fullAddress());
+                restaurantRepository.save(restaurant);
+            }
+        }
+
+        System.out.println("Generated 1000 fake restaurants successfully!");
         return ResponseEntity.ok(
                 ResponseObject.builder()
-                        .message("Get restaurants successfully")
-                        .data(restaurants)
+                        .message("Generated 1000 fake restaurants successfully!")
                         .status(HttpStatus.OK)
                         .build()
         );
     }
 
+
+    //Get all restaurants
+    @GetMapping("")
+    public ResponseEntity<CustomPageResponse<RestaurantResponse>> getRestaurants(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int limit
+    ) {
+        Page<RestaurantResponse> restaurants = restaurantService.getAllRestaurants(page, limit);
+        return ResponseEntity.ok(
+                CustomPageResponse.<RestaurantResponse>builder()
+                        .message("Get all restaurants successfully")
+                        .status(HttpStatus.OK)
+                        .data(restaurants.getContent())
+                        .currentPage(restaurants.getNumber())
+                        .totalItems(restaurants.getTotalElements())
+                        .totalPages(restaurants.getTotalPages())
+                        .build()
+        );
+    }
+
     //Update restaurant
-    @PutMapping("")
-    public ResponseEntity<ResponseObject> updateRestaurant(@RequestBody RestaurantDto restaurantDto) {
-        Restaurant restaurant = authService.getCurrentRestaurant();
+    @PutMapping("/{id}")
+    public ResponseEntity<ResponseObject> updateRestaurant(
+            @PathVariable Long id,
+            @RequestBody RestaurantDto restaurantDto) {
+        RestaurantDto restaurant = restaurantService.updateRestaurant(id, restaurantDto);
 
         return ResponseEntity.ok(
                 ResponseObject.builder()
                         .data(restaurant)
                         .message("Update restaurant successfully")
+                        .status(HttpStatus.OK)
+                        .build()
+        );
+    }
+
+    //Delete restaurant
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ResponseObject> deleteRestaurant(@PathVariable Long id) {
+        restaurantService.deleteRestaurant(id);
+        return ResponseEntity.ok(
+                ResponseObject.builder()
+                        .message("Delete restaurant successfully")
                         .status(HttpStatus.OK)
                         .build()
         );

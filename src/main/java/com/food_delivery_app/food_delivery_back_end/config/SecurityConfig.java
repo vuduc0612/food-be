@@ -50,8 +50,13 @@ public class SecurityConfig {
                                 "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 String.format("%s/users/**", apiPrefix)).permitAll()
-                        .requestMatchers(HttpMethod.GET,
+                        .requestMatchers(HttpMethod.DELETE,
+                                String.format("%s/users/**", apiPrefix)).permitAll()
+                        .requestMatchers(HttpMethod.PUT,
+                                String.format("%s/users/**", apiPrefix)).permitAll()
+                        .requestMatchers(
                                 String.format("%s/restaurants/**", apiPrefix)).permitAll()
+
                         .requestMatchers(HttpMethod.GET,
                                 String.format("%s/dishes/**", apiPrefix)).permitAll()
 

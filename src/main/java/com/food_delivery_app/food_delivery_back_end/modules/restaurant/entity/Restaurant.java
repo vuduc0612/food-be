@@ -32,6 +32,10 @@ public class Restaurant {
 
     private String description;
 
+    @OneToOne
+    @JoinColumn(name = "account_id")
+    private Account account;
+
     @OneToMany(mappedBy = "restaurant")
     private Set<Dish> dishes = new HashSet<>();
 

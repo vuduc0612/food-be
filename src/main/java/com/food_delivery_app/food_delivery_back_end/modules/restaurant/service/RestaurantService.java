@@ -11,5 +11,6 @@ import java.util.List;
 public interface RestaurantService {
     Page<RestaurantResponse> getAllRestaurants(int page, int limit);
     RestaurantDto updateRestaurant(Long id, RestaurantDto restaurantDto);
-
+    RestaurantResponse getRestaurant(Long id);
+    void deleteRestaurant(Long id);
 }
