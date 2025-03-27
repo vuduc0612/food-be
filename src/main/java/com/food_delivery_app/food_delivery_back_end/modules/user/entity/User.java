@@ -3,10 +3,7 @@ package com.food_delivery_app.food_delivery_back_end.modules.user.entity;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.entity.Account;
 import com.food_delivery_app.food_delivery_back_end.modules.order.entity.Order;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 
 import java.time.LocalDateTime;
@@ -19,10 +16,12 @@ import java.util.Set;
 @Getter
 @Setter
 @Table(name = "users")
+@Builder
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
 
     @OneToOne
     @JoinColumn(name = "account_id")
@@ -31,6 +30,8 @@ public class User {
     private String username;
 
     private String address;
+
+    private String photoUrl;
 
     @OneToMany(mappedBy = "user")
     private Set<Order> orders = new HashSet<>();

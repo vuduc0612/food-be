@@ -4,6 +4,7 @@ import com.food_delivery_app.food_delivery_back_end.constant.RoleType;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.dto.LoginDto;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.dto.RegisterDto;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.service.AuthService;
+import com.food_delivery_app.food_delivery_back_end.response.ResponseObject;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,9 +41,15 @@ public class AuthController {
 
     @PostMapping("/restaurant/register")
     @Operation(summary = "Register a new restaurant", description = "Returns the status registered restaurant")
-    public ResponseEntity<String> registerRestaurant(@RequestBody RegisterDto registerUserDto){
+    public ResponseEntity<ResponseObject> registerRestaurant(@RequestBody RegisterDto registerUserDto){
         String response = authService.register(registerUserDto, RoleType.ROLE_RESTAURANT);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+        return ResponseEntity.ok(
+                ResponseObject.builder()
+                        .message(response)
+                        .data(response)
+                        .status(HttpStatus.CREATED)
+                        .build()
+        );
     }
 
     @PostMapping("restaurant/login")

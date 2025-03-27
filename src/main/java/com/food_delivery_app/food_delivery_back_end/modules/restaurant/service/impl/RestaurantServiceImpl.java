@@ -3,11 +3,15 @@ package com.food_delivery_app.food_delivery_back_end.modules.restaurant.service.
 import com.food_delivery_app.food_delivery_back_end.modules.auth.entity.Account;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.entity.AccountRole;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.repository.AccountRepository;
+import com.food_delivery_app.food_delivery_back_end.modules.dish.dto.DishDto;
+import com.food_delivery_app.food_delivery_back_end.modules.dish.entity.Dish;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantDto;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.entity.Restaurant;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.repostitory.RestaurantRepository;
+import com.food_delivery_app.food_delivery_back_end.modules.restaurant.response.RestaurantDetailResponse;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.response.RestaurantResponse;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.service.RestaurantService;
+import com.food_delivery_app.food_delivery_back_end.utils.UploadUtils;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +20,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -27,6 +33,7 @@ public class RestaurantServiceImpl implements RestaurantService {
     private final ModelMapper modelMapper;
     private final RestaurantRepository restaurantRepository;
     private final AccountRepository accountRepository;
+    private final UploadUtils uploadUtils;
 
     @Override
     public Page<RestaurantResponse> getAllRestaurants(int page, int limit) {
@@ -40,8 +47,7 @@ public class RestaurantServiceImpl implements RestaurantService {
         Restaurant restaurant = restaurantRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Restaurant not found"));
         restaurant.setName(restaurantDto.getName());
-        restaurant.setPhone(restaurantDto.getPhone());
-        restaurant.setAddress(restaurant.getAddress());
+        restaurant.setAddress(restaurantDto.getAddress());
         restaurant.setDescription(restaurantDto.getDescription());
         restaurantRepository.save(restaurant);
 
@@ -50,10 +56,22 @@ public class RestaurantServiceImpl implements RestaurantService {
     }
 
     @Override
-    public RestaurantResponse getRestaurant(Long id) {
+    public RestaurantDetailResponse getRestaurant(Long id) {
         Restaurant restaurant = restaurantRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Restaurant not found"));
-        return modelMapper.map(restaurant, RestaurantResponse.class);
+        RestaurantDetailResponse restaurantDetailResponse = modelMapper.map(restaurant, RestaurantDetailResponse.class);
+        List<DishDto> dishDtos = restaurant.getDishes().stream()
+                .map(dish -> DishDto.builder()
+                        .name(dish.getName())
+                        .description(dish.getDescription())
+                        .thumbnail(dish.getThumbnail())
+                        .category(dish.getCategory().getName())
+                        .price(dish.getPrice())
+                        .build())
+                .collect(Collectors.toList());
+        restaurantDetailResponse.setDishes(dishDtos);
+
+        return restaurantDetailResponse;
     }
 
     @Override
@@ -72,6 +90,17 @@ public class RestaurantServiceImpl implements RestaurantService {
         }
         account.setAccountRoles(accountRoles);
         accountRepository.save(account);
+    }
+
+    @Override
+    public String uploadImage(Long id, MultipartFile file) throws IOException {
+        Restaurant restaurant = restaurantRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+        String uploadUrl = uploadUtils.uploadFile(file);
+        restaurant.setPhotoUrl(uploadUrl);
+        restaurantRepository.save(restaurant);
+
+        return uploadUrl;
     }
 
 }

@@ -6,6 +6,7 @@ import com.food_delivery_app.food_delivery_back_end.modules.auth.service.AuthSer
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantDto;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.entity.Restaurant;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.repostitory.RestaurantRepository;
+import com.food_delivery_app.food_delivery_back_end.modules.restaurant.response.RestaurantDetailResponse;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.response.RestaurantResponse;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.service.RestaurantService;
 import com.food_delivery_app.food_delivery_back_end.response.CustomPageResponse;
@@ -16,9 +17,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 @RestController
 @RequestMapping("${api.prefix}/restaurants")
@@ -32,7 +36,7 @@ public class RestaurantController {
     @GetMapping("/fake-data")
     public ResponseEntity<ResponseObject> fakeData() {
         Faker faker = new Faker(new Locale("vi"));
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 10; i++) {
             String email = faker.internet().emailAddress();
             String phone = faker.phoneNumber().cellPhone();
 
@@ -76,6 +80,35 @@ public class RestaurantController {
         );
     }
 
+    //Get restaurant by id
+    @GetMapping("/{id}")
+    public ResponseEntity<ResponseObject> getRestaurant(@PathVariable Long id) {
+        RestaurantDetailResponse restaurant = restaurantService.getRestaurant(id);
+        return ResponseEntity.ok(
+                ResponseObject.builder()
+                        .data(restaurant)
+                        .message("Get restaurant successfully")
+                        .status(HttpStatus.OK)
+                        .build()
+        );
+    }
+
+    //Upload restaurant image
+    @PostMapping("/{id}/upload-image")
+    public ResponseEntity<ResponseObject> uploadImage(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file
+    ) throws IOException {
+        String url = restaurantService.uploadImage(id, file);
+        System.out.println("URL: " + url);
+        return ResponseEntity.ok(
+                ResponseObject.builder()
+                        .data(url)
+                        .message("Upload image successfully")
+                        .status(HttpStatus.OK)
+                        .build()
+        );
+    }
     //Update restaurant
     @PutMapping("/{id}")
     public ResponseEntity<ResponseObject> updateRestaurant(

@@ -16,6 +16,6 @@ import java.util.Optional;
 @Repository
 public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
     Optional<Restaurant> findByAccountId(Long accountId);
-    @Query("SELECT new com.food_delivery_app.food_delivery_back_end.modules.restaurant.response.RestaurantResponse(r.id, r.name, r.address, r.account.email) FROM Restaurant r")
+    @Query("SELECT new com.food_delivery_app.food_delivery_back_end.modules.restaurant.response.RestaurantResponse(r.id, r.name, r.address, r.account.email, r.photoUrl, r.account.phoneNumber) FROM Restaurant r")
     Page<RestaurantResponse> findAllRestaurantsWithNameAndPhoneAndAddress(Pageable pageable);
 }

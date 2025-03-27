@@ -28,9 +28,9 @@ public class Restaurant {
 
     private String address;
 
-    private String phone;
-
     private String description;
+
+    private String photoUrl;
 
     @OneToOne
     @JoinColumn(name = "account_id")

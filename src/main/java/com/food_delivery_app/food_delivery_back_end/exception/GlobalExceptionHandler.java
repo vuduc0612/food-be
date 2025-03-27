@@ -2,6 +2,7 @@ package com.food_delivery_app.food_delivery_back_end.exception;
 
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, ex.getStatus());
     }
 
+
 //    @ExceptionHandler(AccessDeniedException.class)
 //    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
 //        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.FORBIDDEN.value(), "Access denied: You don't have permission to access this resource");
@@ -41,6 +43,7 @@ public class GlobalExceptionHandler {
     // Lớp inner để định dạng phản hồi lỗi
     @Data
     @AllArgsConstructor
+    @Builder
     public static class ErrorResponse {
         private int status;
         private String message;

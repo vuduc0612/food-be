@@ -2,10 +2,7 @@ package com.food_delivery_app.food_delivery_back_end.modules.order.entity;
 
 import com.food_delivery_app.food_delivery_back_end.modules.dish.entity.Dish;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -13,6 +10,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "order_details")
+@Builder
 public class OrderDetail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

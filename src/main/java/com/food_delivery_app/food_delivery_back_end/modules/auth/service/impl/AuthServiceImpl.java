@@ -85,7 +85,7 @@ public class AuthServiceImpl implements AuthService {
                 createRestaurant(account, registerDto);
                 break;
         }
-        return "User registered successfully";
+        return accountRepository.save(account).getId().toString();
     }
 
     @Override
