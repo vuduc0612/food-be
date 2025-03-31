@@ -1,5 +1,6 @@
 package com.food_delivery_app.food_delivery_back_end.modules.order.service;
 
+import com.food_delivery_app.food_delivery_back_end.constant.AddToCartResultType;
 import com.food_delivery_app.food_delivery_back_end.modules.cart.entity.Cart;
 import com.food_delivery_app.food_delivery_back_end.modules.order.dto.OrderDto;
 import com.food_delivery_app.food_delivery_back_end.modules.order.entity.Order;
@@ -11,8 +12,10 @@ import java.util.List;
 
 @Service
 public interface OrderService {
-    void addToCart(Long idDish, Integer quantity);
+    AddToCartResultType addToCart(Long idDish, Integer quantity, boolean force);
     Cart getCart();
+    void updateCart(Long idDish, Integer quantity);
+    void removeItem(Long idDish);
     void clearCart();
     void removeCart();
 

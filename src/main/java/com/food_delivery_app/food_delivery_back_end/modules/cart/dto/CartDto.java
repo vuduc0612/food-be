@@ -1,5 +1,6 @@
 package com.food_delivery_app.food_delivery_back_end.modules.cart.dto;
 
+import com.food_delivery_app.food_delivery_back_end.constant.AddToCartResultType;
 import com.food_delivery_app.food_delivery_back_end.modules.cart.entity.CartItem;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,4 +14,5 @@ public class CartDto {
     private Long restaurantId;
     private List<CartItem> items;
     private Double totalAmount;
+    private AddToCartResultType addToCartResultType;
 }

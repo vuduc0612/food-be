@@ -1,5 +1,6 @@
 package com.food_delivery_app.food_delivery_back_end.modules.order.service.impl;
 
+import com.food_delivery_app.food_delivery_back_end.constant.AddToCartResultType;
 import com.food_delivery_app.food_delivery_back_end.constant.OrderStatusType;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.service.AuthService;
 import com.food_delivery_app.food_delivery_back_end.modules.cart.service.CartService;
@@ -51,8 +52,8 @@ public class OrderServiceImpl implements OrderService {
      */
     //add dish into the current user's cart
     @Override
-    public void addToCart(Long dishId, Integer quantity) {
-        cartService.addToCart(authService.getCurrentUser().getId(), dishId, quantity);
+    public AddToCartResultType addToCart(Long dishId, Integer quantity, boolean force) {
+        return cartService.addToCart(authService.getCurrentUser().getId(), dishId, quantity, force);
     }
 
     //get the current user's cart
@@ -61,11 +62,21 @@ public class OrderServiceImpl implements OrderService {
         return cartService.getCart(authService.getCurrentUser().getId());
     }
 
-    @Override
-    public void clearCart() {
-        cartService.clearCart(authService.getCurrentUser().getId());
+    //update the current user's cart
+    public void updateCart(Long dishId, Integer quantity) {
+        cartService.updateItemQuantity(authService.getCurrentUser().getId(), dishId, quantity);
     }
 
+    @Override
+    public void removeItem(Long idDish) {
+        cartService.removeItem(authService.getCurrentUser().getId(), idDish);
+    }
+
+    @Override
+    public void clearCart() {
+        Cart cart = cartService.getCart(authService.getCurrentUser().getId());
+        cartService.clearCart(authService.getCurrentUser().getId(), cart);
+    }
     @Override
     public void removeCart() {
         cartService.removeCart(authService.getCurrentUser().getId());
@@ -119,7 +130,7 @@ public class OrderServiceImpl implements OrderService {
                     .map(orderDetail -> modelMapper.map(orderDetail, OrderDetailResponse.class))
                     .collect(Collectors.toList())
         );
-        cartService.clearCart(userId);
+        cartService.clearCart(userId, cart);
 
         return orderResponse;
     }

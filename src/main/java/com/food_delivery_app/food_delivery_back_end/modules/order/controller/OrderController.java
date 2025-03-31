@@ -1,6 +1,7 @@
 package com.food_delivery_app.food_delivery_back_end.modules.order.controller;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.food_delivery_app.food_delivery_back_end.constant.AddToCartResultType;
 import com.food_delivery_app.food_delivery_back_end.modules.cart.dto.CartDto;
 import com.food_delivery_app.food_delivery_back_end.modules.cart.entity.CartItem;
 import com.food_delivery_app.food_delivery_back_end.modules.cart.entity.Cart;
@@ -35,18 +36,91 @@ public class OrderController {
     @PostMapping("/cart")
     @PreAuthorize("hasRole('USER')")
     @Operation(summary = "Add to cart", description = "Returns the cart")
-    public ResponseEntity<CartDto> addToCart(
-            @RequestParam Long idDish,
-            @RequestParam Integer quantity) {
+    public ResponseEntity<?> addToCart(
+            @RequestParam Long dishId,
+            @RequestParam Integer quantity,
+            @RequestParam(defaultValue = "false") boolean force) {
         //System.out.println("idDish: " + idDish + " quantity: " + quantity);
-        orderService.addToCart(idDish, quantity);
+        AddToCartResultType addToCartResultType = orderService.addToCart(dishId, quantity, force);
 
         Cart cart = orderService.getCart();
 
         if (cart == null) {
             System.out.println("Cart is null");
         }
-        System.out.println("Cart is not null");
+        //System.out.println("Cart is not null");
+        // Chuyển Cart thành CartDTO
+        CartDto cartDto = new CartDto();
+        cartDto.setUserId(cart.getUserId());
+        cartDto.setRestaurantId(cart.getRestaurantId());
+        cartDto.setItems(cart.getItems());
+        cartDto.setTotalAmount(cart.getTotalAmount());
+        cartDto.setAddToCartResultType(addToCartResultType);
+
+        if (addToCartResultType == AddToCartResultType.SUCCESS) {
+            return ResponseEntity.ok(cartDto);
+        } else {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(cartDto);
+        }
+    }
+
+    @PutMapping("/cart")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(summary = "Update cart", description = "Returns the cart")
+    public ResponseEntity<CartDto> updateCart(
+            @RequestParam Long dishId,
+            @RequestParam Integer quantity) {
+        orderService.updateCart(dishId, quantity);
+
+        Cart cart = orderService.getCart();
+        if (cart == null) {
+            System.out.println("Cart is null");
+        }
+        //System.out.println("Cart is not null");
+        // Chuyển Cart thành CartDTO
+        CartDto cartDto = new CartDto();
+        cartDto.setUserId(cart.getUserId());
+        cartDto.setRestaurantId(cart.getRestaurantId());
+        cartDto.setItems(cart.getItems());
+        cartDto.setTotalAmount(cart.getTotalAmount());
+
+        return ResponseEntity.ok(cartDto);
+    }
+
+    @DeleteMapping("/cart/dish/{dishId}")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(summary = "Remove from cart", description = "Returns the cart")
+    public ResponseEntity<CartDto> removeItemFromCart(
+            @PathVariable Long dishId) {
+        orderService.removeItem(dishId);
+
+        Cart cart = orderService.getCart();
+        if (cart == null) {
+            System.out.println("Cart is null");
+        }
+        //System.out.println("Cart is not null");
+        // Chuyển Cart thành CartDTO
+        CartDto cartDto = new CartDto();
+        cartDto.setUserId(cart.getUserId());
+        cartDto.setRestaurantId(cart.getRestaurantId());
+        cartDto.setItems(cart.getItems());
+        cartDto.setTotalAmount(cart.getTotalAmount());
+
+        return ResponseEntity.ok(cartDto);
+    }
+
+    @DeleteMapping("/cart")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(summary = "Remove from cart", description = "Returns the cart")
+    public ResponseEntity<CartDto> removeAllItemFromCart(
+            @RequestParam Long dishId) {
+        orderService.removeItem(dishId);
+
+        Cart cart = orderService.getCart();
+        if (cart == null) {
+            System.out.println("Cart is null");
+        }
+        //System.out.println("Cart is not null");
         // Chuyển Cart thành CartDTO
         CartDto cartDto = new CartDto();
         cartDto.setUserId(cart.getUserId());
@@ -65,7 +139,7 @@ public class OrderController {
         if (cart == null) {
             System.out.println("Cart is null");
         }
-        System.out.println("Cart is not null");
+        //System.out.println("Cart is not null");
         // Chuyển Cart thành CartDTO
         CartDto cartDto = new CartDto();
         cartDto.setUserId(cart.getUserId());

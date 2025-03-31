@@ -17,4 +17,5 @@ public class CartItem implements Serializable {
     private Integer quantity;
     private Double price;
     private String name;
+    private String thumbnail;
 }

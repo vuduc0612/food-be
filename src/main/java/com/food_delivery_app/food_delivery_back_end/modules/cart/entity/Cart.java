@@ -1,5 +1,6 @@
 package com.food_delivery_app.food_delivery_back_end.modules.cart.entity;
 
+import com.food_delivery_app.food_delivery_back_end.constant.AddToCartResultType;
 import com.food_delivery_app.food_delivery_back_end.modules.dish.repository.DishRepository;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,6 +20,7 @@ public class Cart {
     private List<CartItem> items = new ArrayList<>();
     private Double totalAmount = 0.0;
     private DishRepository dishRepository;
+
 
     public void updateTotalAmount(){
         totalAmount = items.stream()

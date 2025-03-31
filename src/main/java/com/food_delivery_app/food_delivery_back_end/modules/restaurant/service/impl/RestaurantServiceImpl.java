@@ -62,6 +62,7 @@ public class RestaurantServiceImpl implements RestaurantService {
         RestaurantDetailResponse restaurantDetailResponse = modelMapper.map(restaurant, RestaurantDetailResponse.class);
         List<DishDto> dishDtos = restaurant.getDishes().stream()
                 .map(dish -> DishDto.builder()
+                        .id(dish.getId())
                         .name(dish.getName())
                         .description(dish.getDescription())
                         .thumbnail(dish.getThumbnail())

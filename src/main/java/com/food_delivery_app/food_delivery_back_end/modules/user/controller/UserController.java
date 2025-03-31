@@ -93,8 +93,14 @@ public class UserController {
 
     @GetMapping("/me")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public UserDto getCurrentUser(@AuthenticationPrincipal UserPrincipal userPrincipal){
-        return modelMapper.map(authService.getCurrentUser(), UserDto.class);
+    public UserDto getCurrentUser(){
+        User user = authService.getCurrentUser();
+        return UserDto.builder()
+                .id(user.getId())
+                .email(user.getAccount().getEmail())
+                .phoneNumber(user.getAccount().getPhoneNumber())
+                .address(user.getAddress())
+                .build();
     }
 
     @PutMapping("/{id}")
