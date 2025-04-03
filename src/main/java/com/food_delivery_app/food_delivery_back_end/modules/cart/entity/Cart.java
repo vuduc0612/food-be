@@ -19,8 +19,6 @@ public class Cart {
     private Long restaurantId;
     private List<CartItem> items = new ArrayList<>();
     private Double totalAmount = 0.0;
-    private DishRepository dishRepository;
-
 
     public void updateTotalAmount(){
         totalAmount = items.stream()

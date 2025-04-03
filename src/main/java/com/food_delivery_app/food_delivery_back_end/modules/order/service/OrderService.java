@@ -12,13 +12,6 @@ import java.util.List;
 
 @Service
 public interface OrderService {
-    AddToCartResultType addToCart(Long idDish, Integer quantity, boolean force);
-    Cart getCart();
-    void updateCart(Long idDish, Integer quantity);
-    void removeItem(Long idDish);
-    void clearCart();
-    void removeCart();
-
     OrderResponse placeOrder();
 //    Page<OrderResponse> getAllOrder();
     Page<OrderResponse> getAllOrderOfUser(Long userId, int page, int limit);

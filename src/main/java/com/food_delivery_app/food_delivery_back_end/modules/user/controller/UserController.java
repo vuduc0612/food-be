@@ -40,8 +40,9 @@ public class UserController {
         for (int i = 0; i < 1000; i++) {
             String email = faker.internet().emailAddress();
             String phone = faker.phoneNumber().cellPhone();
+            String fullName = faker.name().fullName();
 
-            RegisterDto registerDto = new RegisterDto(email, phone, "password123");
+            RegisterDto registerDto = new RegisterDto(email, phone, fullName, "password123");
             authService.register(registerDto, RoleType.ROLE_USER);
 
         }

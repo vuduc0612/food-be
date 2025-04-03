@@ -39,8 +39,8 @@ public class RestaurantController {
         for (int i = 0; i < 10; i++) {
             String email = faker.internet().emailAddress();
             String phone = faker.phoneNumber().cellPhone();
-
-            RegisterDto registerDto = new RegisterDto(email, phone, "password123");
+            String name = faker.company().name();
+            RegisterDto registerDto = new RegisterDto(email, phone, name, "password123");
             authService.register(registerDto, RoleType.ROLE_RESTAURANT);
 
             List<Restaurant> restaurants = restaurantRepository.findAll();

@@ -1,11 +1,13 @@
 package com.food_delivery_app.food_delivery_back_end.modules.auth.service.impl;
 
 import com.food_delivery_app.food_delivery_back_end.constant.RoleType;
-import com.food_delivery_app.food_delivery_back_end.exception.AccountNotFoundException;
+import com.food_delivery_app.food_delivery_back_end.exception.DataNotFoundException;
+import com.food_delivery_app.food_delivery_back_end.exception.EntityExistsException;
 import com.food_delivery_app.food_delivery_back_end.exception.ForbiddenException;
 import com.food_delivery_app.food_delivery_back_end.exception.InvalidCredentialsException;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.dto.LoginDto;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.dto.RegisterDto;
+import com.food_delivery_app.food_delivery_back_end.modules.auth.dto.RegisterResponse;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.entity.Account;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.entity.AccountRole;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.repository.AccountRepository;
@@ -17,7 +19,6 @@ import com.food_delivery_app.food_delivery_back_end.modules.user.repository.User
 import com.food_delivery_app.food_delivery_back_end.security.UserPrincipal;
 import com.food_delivery_app.food_delivery_back_end.utils.JwtTokenProvider;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.service.AuthService;
-import jakarta.persistence.EntityExistsException;
 import lombok.AllArgsConstructor;
 
 
@@ -40,7 +41,7 @@ public class AuthServiceImpl implements AuthService {
     private UserRepository userRepository;
     private RestaurantRepository restaurantRepository;
     @Override
-    public String register(RegisterDto registerDto, RoleType roleType) {
+    public RegisterResponse register(RegisterDto registerDto, RoleType roleType) {
         String email = registerDto.getEmail();
         Optional<Account> existingAccount = accountRepository.findByEmail(email);
         Account account;
@@ -50,7 +51,7 @@ public class AuthServiceImpl implements AuthService {
             // check existing role
             boolean hasRole = accountRoleRepository.existsByAccountAndRoleType(account, roleType);
             if (hasRole) {
-                return "Account already has this role";
+                throw new EntityExistsException("Account already has role: " + roleType);
             }
         }
         else {
@@ -76,16 +77,19 @@ public class AuthServiceImpl implements AuthService {
         accountRoleRepository.save(accountRole);
 
         // create user or restaurant
-        //System.out.println(roleType);
         switch (roleType) {
             case ROLE_USER:
-                createUser(account, registerDto);
+                createUser(account);
                 break;
             case ROLE_RESTAURANT:
-                createRestaurant(account, registerDto);
+                createRestaurant(account);
                 break;
         }
-        return accountRepository.save(account).getId().toString();
+        accountRepository.save(account);
+        return RegisterResponse.builder()
+                .fullName(registerDto.getFullName())
+                .email(account.getEmail())
+                .build();
     }
 
     @Override
@@ -93,11 +97,11 @@ public class AuthServiceImpl implements AuthService {
         String email = loginDto.getEmail();
 
         if(!accountRepository.existsByEmail(email)){
-            throw new AccountNotFoundException("Account not found with email: " + email);
+            throw new DataNotFoundException(("Account not found with email: " + email));
         }
 
         Account account = accountRepository.findByEmail(loginDto.getEmail())
-                .orElseThrow(() -> new AccountNotFoundException("Account not found with email: " + email));
+                .orElseThrow(() -> new DataNotFoundException("Account not found with email: " + email));
 
         // check password
         if (!passwordEncoder.matches(loginDto.getPassword(), account.getPassword())) {
@@ -115,7 +119,7 @@ public class AuthServiceImpl implements AuthService {
         return jwtTokenProvider.generateToken(email, roleType);
     }
 
-    private void createUser(Account account, RegisterDto dto) {
+    private void createUser(Account account) {
         if (account.getUser() == null) {
             User user = new User();
             user.setAccount(account);
@@ -125,7 +129,7 @@ public class AuthServiceImpl implements AuthService {
 
 
 
-    private void createRestaurant(Account account, RegisterDto dto) {
+    private void createRestaurant(Account account) {
         if (account.getRestaurant() == null) {
             Restaurant restaurant = new Restaurant();
             restaurant.setAccount(account);
@@ -141,7 +145,7 @@ public class AuthServiceImpl implements AuthService {
             //System.out.println("UserPrincipal: " + userPrincipal);
             Long accountId = userPrincipal.getId();
             return userRepository.findByAccountId(accountId)
-                    .orElseThrow(() -> new EntityExistsException("User not found"));
+                    .orElseThrow(() -> new DataNotFoundException("User not found"));
         }
         return null;
     }
@@ -153,7 +157,7 @@ public class AuthServiceImpl implements AuthService {
             UserPrincipal userPrincipal =  (UserPrincipal) authentication.getPrincipal();
             Long accountId = userPrincipal.getId();
             return restaurantRepository.findByAccountId(accountId)
-                    .orElseThrow(() -> new EntityExistsException("Restaurant not found"));
+                    .orElseThrow(() -> new DataNotFoundException("Restaurant not found"));
         }
         return null;
     }

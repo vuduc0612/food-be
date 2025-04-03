@@ -12,7 +12,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 public class CartItem implements Serializable {
-    private Long idDish;
+    private Long dishId;
     private Long restaurantId;
     private Integer quantity;
     private Double price;

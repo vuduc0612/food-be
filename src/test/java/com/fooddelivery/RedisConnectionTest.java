@@ -1,5 +1,6 @@
 package com.fooddelivery;
 
+import com.food_delivery_app.food_delivery_back_end.FoodDeliveryBackEndApplication;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -8,19 +9,16 @@ import org.springframework.data.redis.core.ValueOperations;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SpringBootTest
+@SpringBootTest(classes = FoodDeliveryBackEndApplication.class)
 public class RedisConnectionTest {
 
     @Autowired
-    private RedisTemplate<String, String> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Test
     public void testRedisConnection() {
-        ValueOperations<String, String> ops = redisTemplate.opsForValue();
-        ops.set("test", "Hello Redis");
-        String value = ops.get("test");
+        redisTemplate.opsForValue().set("test", "Hello Redis");
+        Object value = redisTemplate.opsForValue().get("test");
         assertEquals("Hello Redis", value);
     }
-    //C:\Program Files\Common Files\Oracle\Java\javapath
-    //C:\ProgramData\Oracle\Java\javapath
-} 
+}

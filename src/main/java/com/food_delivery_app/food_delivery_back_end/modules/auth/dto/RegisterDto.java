@@ -14,11 +14,9 @@ public class RegisterDto {
     @NotNull
     private String email;
 
-    @NotNull
+    private String fullName;
     private String phoneNumber;
 
     @NotNull
     private String password;
-
-
 }

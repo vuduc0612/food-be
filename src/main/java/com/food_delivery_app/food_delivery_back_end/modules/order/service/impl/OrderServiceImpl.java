@@ -3,6 +3,7 @@ package com.food_delivery_app.food_delivery_back_end.modules.order.service.impl;
 import com.food_delivery_app.food_delivery_back_end.constant.AddToCartResultType;
 import com.food_delivery_app.food_delivery_back_end.constant.OrderStatusType;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.service.AuthService;
+import com.food_delivery_app.food_delivery_back_end.modules.cart.dto.CartDto;
 import com.food_delivery_app.food_delivery_back_end.modules.cart.service.CartService;
 import com.food_delivery_app.food_delivery_back_end.modules.dish.entity.Dish;
 import com.food_delivery_app.food_delivery_back_end.modules.dish.repository.DishRepository;
@@ -48,42 +49,6 @@ public class OrderServiceImpl implements OrderService {
     private final CartService cartService;
 
     /*
-      -----CART-----
-     */
-    //add dish into the current user's cart
-    @Override
-    public AddToCartResultType addToCart(Long dishId, Integer quantity, boolean force) {
-        return cartService.addToCart(authService.getCurrentUser().getId(), dishId, quantity, force);
-    }
-
-    //get the current user's cart
-    @Override
-    public Cart getCart() {
-        return cartService.getCart(authService.getCurrentUser().getId());
-    }
-
-    //update the current user's cart
-    public void updateCart(Long dishId, Integer quantity) {
-        cartService.updateItemQuantity(authService.getCurrentUser().getId(), dishId, quantity);
-    }
-
-    @Override
-    public void removeItem(Long idDish) {
-        cartService.removeItem(authService.getCurrentUser().getId(), idDish);
-    }
-
-    @Override
-    public void clearCart() {
-        Cart cart = cartService.getCart(authService.getCurrentUser().getId());
-        cartService.clearCart(authService.getCurrentUser().getId(), cart);
-    }
-    @Override
-    public void removeCart() {
-        cartService.removeCart(authService.getCurrentUser().getId());
-    }
-
-
-    /*
         -----ORDER----
      */
     //place an order
@@ -95,7 +60,7 @@ public class OrderServiceImpl implements OrderService {
         User customer = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Cart cart = cartService.getCart(userId);
+        Cart cart = modelMapper.map(cartService.getCart(userId), Cart.class);
         if (cart.getItems().isEmpty()) {
             throw new IllegalStateException("Cannot place an order with an empty cart");
         }
@@ -114,7 +79,7 @@ public class OrderServiceImpl implements OrderService {
 
         for(CartItem cartItem : cart.getItems()){
             OrderDetail orderDetail = new OrderDetail();
-            orderDetail.setDish(dishRepository.findById(cartItem.getIdDish())
+            orderDetail.setDish(dishRepository.findById(cartItem.getDishId())
                     .orElseThrow(() -> new RuntimeException("Dish not found"))
             );
             orderDetail.setOrder(savedOrder);

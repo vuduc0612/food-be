@@ -2,12 +2,14 @@ package com.food_delivery_app.food_delivery_back_end.modules.cart.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.food_delivery_app.food_delivery_back_end.constant.AddToCartResultType;
+import com.food_delivery_app.food_delivery_back_end.modules.cart.dto.CartDto;
 import com.food_delivery_app.food_delivery_back_end.modules.cart.entity.Cart;
 import com.food_delivery_app.food_delivery_back_end.modules.cart.entity.CartItem;
 import com.food_delivery_app.food_delivery_back_end.modules.cart.service.CartService;
 import com.food_delivery_app.food_delivery_back_end.modules.dish.entity.Dish;
 import com.food_delivery_app.food_delivery_back_end.modules.dish.repository.DishRepository;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -21,33 +23,36 @@ public class RedisCartService implements CartService {
     private static final String CART_PREFIX = "cart:";
     private final RedisTemplate<String, Object> redisTemplate;
     private final DishRepository dishRepository;
+    private final ModelMapper modelMapper;
 
     private String getCartKey(Long userId){
         return CART_PREFIX + userId;
     }
 
     @Override
-    public Cart getCart(Long userId) {
+    public CartDto getCart(Long userId) {
         String cartKey = getCartKey(userId);
         Object obj = redisTemplate.opsForValue().get(cartKey);
 
         if (obj instanceof LinkedHashMap<?,?>) {
             ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.convertValue(obj, Cart.class);
+            Cart cart =  objectMapper.convertValue(obj, Cart.class);
+            return modelMapper.map(cart, CartDto.class);
         }
 
         if(obj == null){
             Cart cart = new Cart();
             cart.setUserId(userId);
 
-            return cart;
+            return modelMapper.map(cart, CartDto.class);
         }
-        return (Cart) obj;
+        return (CartDto) obj;
     }
-//16727
+
     @Override
-    public AddToCartResultType addToCart(Long userId, Long dishId, Integer quantity, boolean force) {
-        Cart cart = getCart(userId);
+    public CartDto addToCart(Long userId, Long dishId, Integer quantity, boolean force) {
+        Cart cart = modelMapper.map(getCart(userId), Cart.class);
+
         Dish dish = dishRepository.findById(dishId)
                 .orElseThrow(() -> new RuntimeException("Dish not found"));
 
@@ -56,12 +61,11 @@ public class RedisCartService implements CartService {
         // Nếu giỏ không trống và khác nhà hàng
         if (!cart.getItems().isEmpty() && !cart.getRestaurantId().equals(newRestaurantId)) {
             if (!force) {
-                return AddToCartResultType.CONFLICT_DIFFERENT_RESTAURANT;
+                CartDto cartDto = modelMapper.map(cart, CartDto.class);
+                cartDto.setAddToCartResultType(AddToCartResultType.CONFLICT_DIFFERENT_RESTAURANT);
+                return cartDto;
             } else {
                 clearCart(userId, cart); // xóa sạch món
-//                cart.getItems().clear();
-//                cart.setTotalAmount(0.0);
-                System.out.println("Clear cart");
                 cart.setRestaurantId(newRestaurantId);
             }
         }
@@ -73,7 +77,7 @@ public class RedisCartService implements CartService {
 
         // Cập nhật hoặc thêm món
         Optional<CartItem> existingItemOpt = cart.getItems().stream()
-                .filter(item -> item.getIdDish().equals(dishId))
+                .filter(item -> item.getDishId().equals(dishId))
                 .findFirst();
 
         if (existingItemOpt.isPresent()) {
@@ -81,7 +85,7 @@ public class RedisCartService implements CartService {
             existingItem.setQuantity(existingItem.getQuantity() + quantity);
         } else {
             CartItem cartItem = new CartItem();
-            cartItem.setIdDish(dish.getId());
+            cartItem.setDishId(dish.getId());
             cartItem.setQuantity(quantity);
             cartItem.setPrice(dish.getPrice());
             cartItem.setName(dish.getName());
@@ -94,7 +98,9 @@ public class RedisCartService implements CartService {
         cart.updateTotalAmount();
         saveCart(userId, cart);
 
-        return AddToCartResultType.SUCCESS;
+        CartDto cartDto = modelMapper.map(cart, CartDto.class);
+        cartDto.setAddToCartResultType(AddToCartResultType.SUCCESS);
+        return cartDto;
     }
 
 
@@ -107,11 +113,12 @@ public class RedisCartService implements CartService {
 
     @Override
     public void updateItemQuantity(Long userId, Long dishId, Integer quantity) {
-        Cart cart = getCart(userId);
+        Cart cart = modelMapper.map(getCart(userId), Cart.class);
         for(CartItem item : cart.getItems()){
-            if(item.getIdDish().equals(dishId)){
+            if(item.getDishId().equals(dishId)){
                 if(quantity == 0){
                     cart.getItems().remove(item);
+                    cart.setRestaurantId(null);
                     break;
                 }
                 item.setQuantity(quantity);
@@ -126,8 +133,8 @@ public class RedisCartService implements CartService {
 
     @Override
     public void removeItem(Long userId, Long dishId) {
-        Cart cart = getCart(userId);
-        cart.getItems().removeIf(item -> item.getIdDish().equals(dishId));
+        Cart cart = modelMapper.map(getCart(userId), Cart.class);
+        cart.getItems().removeIf(item -> item.getDishId().equals(dishId));
         cart.updateTotalAmount();
         saveCart(userId, cart);
     }
