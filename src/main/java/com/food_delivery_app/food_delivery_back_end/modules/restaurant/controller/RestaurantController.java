@@ -6,8 +6,8 @@ import com.food_delivery_app.food_delivery_back_end.modules.auth.service.AuthSer
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantDto;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.entity.Restaurant;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.repostitory.RestaurantRepository;
-import com.food_delivery_app.food_delivery_back_end.modules.restaurant.response.RestaurantDetailResponse;
-import com.food_delivery_app.food_delivery_back_end.modules.restaurant.response.RestaurantResponse;
+import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantDetailResponse;
+import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantResponse;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.service.RestaurantService;
 import com.food_delivery_app.food_delivery_back_end.response.CustomPageResponse;
 import com.food_delivery_app.food_delivery_back_end.response.ResponseObject;
@@ -22,7 +22,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 @RestController
 @RequestMapping("${api.prefix}/restaurants")

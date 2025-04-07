@@ -4,16 +4,13 @@ import com.food_delivery_app.food_delivery_back_end.modules.auth.entity.Account;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.entity.AccountRole;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.repository.AccountRepository;
 import com.food_delivery_app.food_delivery_back_end.modules.dish.dto.DishDto;
-import com.food_delivery_app.food_delivery_back_end.modules.dish.entity.Dish;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantDto;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.entity.Restaurant;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.repostitory.RestaurantRepository;
-import com.food_delivery_app.food_delivery_back_end.modules.restaurant.response.RestaurantDetailResponse;
-import com.food_delivery_app.food_delivery_back_end.modules.restaurant.response.RestaurantResponse;
+import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantDetailResponse;
+import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantResponse;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.service.RestaurantService;
 import com.food_delivery_app.food_delivery_back_end.utils.UploadUtils;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -60,6 +57,8 @@ public class RestaurantServiceImpl implements RestaurantService {
         Restaurant restaurant = restaurantRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Restaurant not found"));
         RestaurantDetailResponse restaurantDetailResponse = modelMapper.map(restaurant, RestaurantDetailResponse.class);
+        restaurantDetailResponse.setPhoneNumber(restaurant.getAccount().getPhoneNumber());
+        restaurantDetailResponse.setEmail(restaurant.getAccount().getEmail());
         List<DishDto> dishDtos = restaurant.getDishes().stream()
                 .map(dish -> DishDto.builder()
                         .id(dish.getId())

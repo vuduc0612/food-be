@@ -24,8 +24,22 @@ import java.util.Set;
 
         private Double totalAmount;
         private OrderStatusType status;
+        @Column(name = "created_at")
         private LocalDateTime createdAt;
-
+        //Địa chỉ giao hàng
+        @Column(name = "delivery_address")
+        private String deliveryAddress;
+        //Phương thức thanh toán
+        @Column(name = "payment_method")
+        private String paymentMethod;
+        //Trạng thái thanh toán
+        @Column(name = "payment_status")
+        private String paymentStatus;
+        //Thời gian giao hàng
+        @Column(name = "delivery_time")
+        private LocalDateTime deliveryTime;
+        //Ghi chú
+        private String note;
 
         @ManyToOne
         @JoinColumn(name = "user_id", nullable = false)

@@ -30,7 +30,9 @@ public class Account {
     private String phoneNumber;
 
     private String status;
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
+    @Column(name = "updated_at")
     private LocalDateTime lastLogin;
 
     @OneToMany(mappedBy = "account")

@@ -1,17 +1,8 @@
 package com.food_delivery_app.food_delivery_back_end.modules.order.controller;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.food_delivery_app.food_delivery_back_end.constant.AddToCartResultType;
-import com.food_delivery_app.food_delivery_back_end.modules.cart.dto.CartDto;
-import com.food_delivery_app.food_delivery_back_end.modules.cart.entity.CartItem;
-import com.food_delivery_app.food_delivery_back_end.modules.cart.entity.Cart;
-import com.food_delivery_app.food_delivery_back_end.modules.order.entity.Order;
-import com.food_delivery_app.food_delivery_back_end.modules.order.entity.OrderDetail;
-import com.food_delivery_app.food_delivery_back_end.modules.order.response.OrderDetailResponse;
-import com.food_delivery_app.food_delivery_back_end.modules.order.response.OrderResponse;
+import com.food_delivery_app.food_delivery_back_end.modules.order.dto.OrderResponse;
 import com.food_delivery_app.food_delivery_back_end.modules.order.service.OrderService;
 import com.food_delivery_app.food_delivery_back_end.response.CustomPageResponse;
-import com.food_delivery_app.food_delivery_back_end.response.ResponseObject;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -20,10 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("${api.prefix}/orders")

@@ -1,11 +1,8 @@
 package com.food_delivery_app.food_delivery_back_end.modules.order.service.impl;
 
-import com.food_delivery_app.food_delivery_back_end.constant.AddToCartResultType;
 import com.food_delivery_app.food_delivery_back_end.constant.OrderStatusType;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.service.AuthService;
-import com.food_delivery_app.food_delivery_back_end.modules.cart.dto.CartDto;
 import com.food_delivery_app.food_delivery_back_end.modules.cart.service.CartService;
-import com.food_delivery_app.food_delivery_back_end.modules.dish.entity.Dish;
 import com.food_delivery_app.food_delivery_back_end.modules.dish.repository.DishRepository;
 import com.food_delivery_app.food_delivery_back_end.modules.cart.entity.Cart;
 import com.food_delivery_app.food_delivery_back_end.modules.cart.entity.CartItem;
@@ -14,14 +11,13 @@ import com.food_delivery_app.food_delivery_back_end.modules.order.entity.Order;
 import com.food_delivery_app.food_delivery_back_end.modules.order.entity.OrderDetail;
 import com.food_delivery_app.food_delivery_back_end.modules.order.repository.OrderDetailRepository;
 import com.food_delivery_app.food_delivery_back_end.modules.order.repository.OrderRepository;
-import com.food_delivery_app.food_delivery_back_end.modules.order.response.OrderDetailResponse;
-import com.food_delivery_app.food_delivery_back_end.modules.order.response.OrderResponse;
+import com.food_delivery_app.food_delivery_back_end.modules.order.dto.OrderDetailResponse;
+import com.food_delivery_app.food_delivery_back_end.modules.order.dto.OrderResponse;
 import com.food_delivery_app.food_delivery_back_end.modules.order.service.OrderService;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.entity.Restaurant;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.repostitory.RestaurantRepository;
 import com.food_delivery_app.food_delivery_back_end.modules.user.entity.User;
 import com.food_delivery_app.food_delivery_back_end.modules.user.repository.UserRepository;
-import jakarta.persistence.*;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -31,7 +27,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.stream.Collectors;
 
 
@@ -65,7 +60,7 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalStateException("Cannot place an order with an empty cart");
         }
 
-        Restaurant restaurant = restaurantRepository.findById(cart.getRestaurantId())
+        Restaurant restaurant = restaurantRepository.findById(cart.getRestaurant().getId())
                 .orElseThrow(() -> new RuntimeException("Restaurant not found"));
 
         Order order = new Order();
