@@ -57,6 +57,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT,
                                 String.format("%s/users/**", apiPrefix)).permitAll()
                         .requestMatchers(
+                                String.format("%s/delivery/**", apiPrefix)).permitAll()
+                        .requestMatchers(
                                 String.format("%s/restaurants/**", apiPrefix)).permitAll()
                         .requestMatchers(
                                 String.format("%s/dishes/**", apiPrefix)).permitAll()

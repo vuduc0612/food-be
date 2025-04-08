@@ -32,6 +32,10 @@ public class Restaurant {
 
     private String photoUrl;
 
+    private Double latitude;
+
+    private Double longitude;
+
     @OneToOne
     @JoinColumn(name = "account_id")
     private Account account;
