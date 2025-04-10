@@ -40,6 +40,7 @@ public class AuthServiceImpl implements AuthService {
     private JwtTokenProvider jwtTokenProvider;
     private UserRepository userRepository;
     private RestaurantRepository restaurantRepository;
+
     @Override
     public RegisterResponse register(RegisterDto registerDto, RoleType roleType) {
         String email = registerDto.getEmail();
