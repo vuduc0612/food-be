@@ -12,6 +12,7 @@ import com.food_delivery_app.food_delivery_back_end.modules.auth.entity.Account;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.entity.AccountRole;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.repository.AccountRepository;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.repository.AccountRoleRepository;
+import com.food_delivery_app.food_delivery_back_end.modules.otp.service.OtpService;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.entity.Restaurant;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.repostitory.RestaurantRepository;
 import com.food_delivery_app.food_delivery_back_end.modules.user.entity.User;
@@ -22,6 +23,7 @@ import com.food_delivery_app.food_delivery_back_end.modules.auth.service.AuthSer
 import lombok.AllArgsConstructor;
 
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,15 +33,16 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-@AllArgsConstructor
 @Service
+@RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
-    private PasswordEncoder passwordEncoder;
-    private AccountRepository accountRepository;
-    private AccountRoleRepository accountRoleRepository;
-    private JwtTokenProvider jwtTokenProvider;
-    private UserRepository userRepository;
-    private RestaurantRepository restaurantRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final AccountRepository accountRepository;
+    private final AccountRoleRepository accountRoleRepository;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository;
+    private final RestaurantRepository restaurantRepository;
+    private final OtpService otpService;
 
     @Override
     public RegisterResponse register(RegisterDto registerDto, RoleType roleType) {
@@ -51,9 +54,12 @@ public class AuthServiceImpl implements AuthService {
 
             // check existing role
             boolean hasRole = accountRoleRepository.existsByAccountAndRoleType(account, roleType);
-            if (hasRole) {
+            if (hasRole && account.getStatus().equals("ACTIVE")) {
                 throw new EntityExistsException("Account already has role: " + roleType);
             }
+            System.out.println("Send OTP to existing account");
+            otpService.generateAndSendOtp(account);
+
         }
         else {
             // create account
@@ -61,37 +67,51 @@ public class AuthServiceImpl implements AuthService {
             account.setEmail(registerDto.getEmail());
             account.setPassword(passwordEncoder.encode(registerDto.getPassword()));
             account.setPhoneNumber(registerDto.getPhoneNumber());
-            account.setStatus("ACTIVE");
+            account.setStatus("PENDING");
             account.setCreatedAt(LocalDateTime.now());
             accountRepository.save(account);
+            System.out.println("Send OTP to new account");
+            otpService.generateAndSendOtp(account);
         }
-        // add role to account
+        return RegisterResponse.builder()
+                .email(account.getEmail())
+                .build();
+
+    }
+    @Override
+    public boolean verifyOtp(RegisterDto registerDto, String otpCode, RoleType roleType) {
+        Optional<Account> accountOptional = accountRepository.findByEmail(registerDto.getEmail());
+        if (accountOptional.isEmpty()) return false;
+
+        Account account = accountOptional.get();
+        boolean verified = otpService.verifyOtp(account, otpCode);
+
+        if (!verified) return false;
+
+        // Cập nhật trạng thái đã xác thực
+        account.setStatus("ACTIVE");
+        accountRepository.save(account);
+
+        // Gán role sau khi xác thực OTP
         AccountRole accountRole = new AccountRole();
         accountRole.setAccount(account);
         accountRole.setRoleType(roleType);
         accountRole.setActive(true);
-        account.setCreatedAt(LocalDateTime.now());
-
-        if(registerDto.getPhoneNumber() != null){
-            account.setPhoneNumber(registerDto.getPhoneNumber());
-        }
         accountRoleRepository.save(accountRole);
 
-        // create user or restaurant
+        // Tạo đối tượng phụ (User hoặc Restaurant)
         switch (roleType) {
             case ROLE_USER:
-                createUser(account);
+                createUser(account, registerDto);
                 break;
             case ROLE_RESTAURANT:
-                createRestaurant(account);
+                createRestaurant(account, registerDto);
                 break;
         }
-        accountRepository.save(account);
-        return RegisterResponse.builder()
-                .fullName(registerDto.getFullName())
-                .email(account.getEmail())
-                .build();
+
+        return true;
     }
+
 
     @Override
     public String login(LoginDto loginDto, RoleType roleType) {
@@ -120,20 +140,23 @@ public class AuthServiceImpl implements AuthService {
         return jwtTokenProvider.generateToken(email, roleType);
     }
 
-    private void createUser(Account account) {
+    private void createUser(Account account, RegisterDto registerDto) {
         if (account.getUser() == null) {
             User user = new User();
             user.setAccount(account);
+            user.setUsername(registerDto.getFullName());
+
             userRepository.save(user);
         }
     }
 
 
 
-    private void createRestaurant(Account account) {
+    private void createRestaurant(Account account, RegisterDto registerDto) {
         if (account.getRestaurant() == null) {
             Restaurant restaurant = new Restaurant();
             restaurant.setAccount(account);
+            restaurant.setName(registerDto.getFullName());
             restaurantRepository.save(restaurant);
         }
     }

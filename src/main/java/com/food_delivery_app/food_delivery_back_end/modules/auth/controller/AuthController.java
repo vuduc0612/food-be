@@ -41,6 +41,19 @@ public class AuthController {
         );
     }
 
+    @PostMapping("/customer/verify-otp")
+    @Operation(summary = "Verify OTP", description = "Returns the status of OTP verification")
+    public ResponseEntity<ResponseObject> verifyOtp(@RequestBody @Valid RegisterDto registerUserDto, @RequestParam String otp){
+        boolean response = authService.verifyOtp(registerUserDto, otp, RoleType.ROLE_USER);
+        return ResponseEntity.ok(
+                ResponseObject.builder()
+                        .message("OTP verified successfully")
+                        .data(response)
+                        .status(HttpStatus.CREATED)
+                        .build()
+        );
+    }
+
     @PostMapping("customer/login")
     @Operation(summary = "Login a user", description = "Return token to authenticate user")
     public ResponseEntity<ResponseObject> loginUser(@RequestBody @Valid LoginDto loginDto){

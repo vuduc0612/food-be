@@ -15,11 +15,12 @@ public class MailController {
     private final MailService mailService;
     private final EmailService emailService;
 
-    @GetMapping("/test-mail")
+    @PostMapping("/test-mail")
     public ResponseEntity<String> testMail() throws Exception {
         mailService.sendOrderSuccessEmail("vuhuuduc1206@gmail.com", "Nguyễn Văn A");
         return ResponseEntity.ok("Mail sent!");
     }
+
 
     @PostMapping("/send")
     public ResponseEntity<String> sendEmail(@RequestBody EmailMessage emailMessage) {
