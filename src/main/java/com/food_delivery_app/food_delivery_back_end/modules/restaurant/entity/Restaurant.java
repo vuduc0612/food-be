@@ -40,9 +40,9 @@ public class Restaurant {
     @JoinColumn(name = "account_id")
     private Account account;
 
-    @OneToMany(mappedBy = "restaurant")
+    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private Set<Dish> dishes = new HashSet<>();
 
-    @OneToMany(mappedBy = "restaurant")
+    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private Set<Order> orders = new HashSet<>();
 }

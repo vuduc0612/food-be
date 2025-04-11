@@ -34,7 +34,7 @@ public class AuthController {
         RegisterResponse response = authService.register(registerUserDto, RoleType.ROLE_USER);
         return  ResponseEntity.ok(
                 ResponseObject.builder()
-                        .message("User registered successfully")
+                        .message("Please check your email to verify your account")
                         .data(response)
                         .status(HttpStatus.CREATED)
                         .build()
@@ -45,9 +45,36 @@ public class AuthController {
     @Operation(summary = "Verify OTP", description = "Returns the status of OTP verification")
     public ResponseEntity<ResponseObject> verifyOtp(@RequestBody @Valid RegisterDto registerUserDto, @RequestParam String otp){
         boolean response = authService.verifyOtp(registerUserDto, otp, RoleType.ROLE_USER);
+        if (!response) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ResponseObject.builder()
+                            .message("OTP verification failed")
+                            .status(HttpStatus.BAD_REQUEST)
+                            .build());
+        }
         return ResponseEntity.ok(
                 ResponseObject.builder()
                         .message("OTP verified successfully")
+                        .data(response)
+                        .status(HttpStatus.CREATED)
+                        .build()
+        );
+    }
+
+    @PostMapping("/customer/resend-otp")
+    @Operation(summary = "Resend OTP", description = "Returns the status of OTP resend")
+    public ResponseEntity<ResponseObject> resendOtp(@RequestBody @Valid RegisterDto registerUserDto){
+        boolean response = authService.resendOtp(registerUserDto, RoleType.ROLE_USER);
+        if (!response) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ResponseObject.builder()
+                            .message("Account does not exist or already verified")
+                            .status(HttpStatus.BAD_REQUEST)
+                            .build());
+        }
+        return ResponseEntity.ok(
+                ResponseObject.builder()
+                        .message("OTP has been resent. Please check your email.")
                         .data(response)
                         .status(HttpStatus.CREATED)
                         .build()
@@ -88,6 +115,18 @@ public class AuthController {
                 ResponseObject.builder()
                         .message("Login successfully")
                         .data(response)
+                        .status(HttpStatus.OK)
+                        .build()
+        );
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Delete a user", description = "Returns the status of user deletion")
+    public ResponseEntity<ResponseObject> deleteUser(@PathVariable Long id){
+        authService.deleteAccount(id);
+        return ResponseEntity.ok(
+                ResponseObject.builder()
+                        .message("User deleted successfully")
                         .status(HttpStatus.OK)
                         .build()
         );

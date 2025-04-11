@@ -3,13 +3,12 @@ package com.food_delivery_app.food_delivery_back_end.modules.user.controller;
 import com.food_delivery_app.food_delivery_back_end.constant.RoleType;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.dto.RegisterDto;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.service.AuthService;
-import com.food_delivery_app.food_delivery_back_end.modules.user.dto.UserDto;
+import com.food_delivery_app.food_delivery_back_end.modules.user.dto.UserResponseDto;
 import com.food_delivery_app.food_delivery_back_end.modules.user.entity.User;
 import com.food_delivery_app.food_delivery_back_end.modules.user.repository.UserRepository;
 import com.food_delivery_app.food_delivery_back_end.modules.user.service.UserService;
 import com.food_delivery_app.food_delivery_back_end.response.CustomPageResponse;
 import com.food_delivery_app.food_delivery_back_end.response.ResponseObject;
-import com.food_delivery_app.food_delivery_back_end.security.UserPrincipal;
 import com.github.javafaker.Faker;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -17,7 +16,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -63,13 +61,13 @@ public class UserController {
     }
 
     @GetMapping("")
-    public ResponseEntity<CustomPageResponse<UserDto>> getAllUsers(
+    public ResponseEntity<CustomPageResponse<UserResponseDto>> getAllUsers(
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(defaultValue = "0") int page
     ){
-        Page<UserDto> userDtoPage =  userService.getAllUsers(page, limit);
+        Page<UserResponseDto> userDtoPage =  userService.getAllUsers(page, limit);
         return ResponseEntity.ok(
-                CustomPageResponse.<UserDto>builder()
+                CustomPageResponse.<UserResponseDto>builder()
                         .message("Get all users successfully")
                         .status(HttpStatus.OK)
                         .data(userDtoPage.getContent())
@@ -82,11 +80,11 @@ public class UserController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ResponseObject> getUser(@PathVariable Long id){
-        UserDto userDto = userService.getUser(id);
+        UserResponseDto userResponseDto = userService.getUser(id);
         return ResponseEntity.ok(
                 ResponseObject.builder()
                         .message("Get user successfully")
-                        .data(userDto)
+                        .data(userResponseDto)
                         .status(HttpStatus.OK)
                         .build()
         );
@@ -94,9 +92,9 @@ public class UserController {
 
     @GetMapping("/me")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public UserDto getCurrentUser(){
+    public UserResponseDto getCurrentUser(){
         User user = authService.getCurrentUser();
-        return UserDto.builder()
+        return UserResponseDto.builder()
                 .id(user.getId())
                 .email(user.getAccount().getEmail())
                 .phoneNumber(user.getAccount().getPhoneNumber())
@@ -108,9 +106,9 @@ public class UserController {
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<ResponseObject> updateUser(
             @PathVariable Long id,
-            @RequestBody UserDto userDto
+            @RequestBody UserResponseDto userResponseDto
     ){
-        UserDto updatedUser = userService.updateUser(id, userDto);
+        UserResponseDto updatedUser = userService.updateUser(id, userResponseDto);
         return ResponseEntity.ok(
                 ResponseObject.builder()
                         .message("Update user successfully")

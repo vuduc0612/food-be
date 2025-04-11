@@ -7,7 +7,7 @@ import lombok.*;
 @Getter
 @Setter
 @Builder
-public class UserDto {
+public class UserResponseDto {
     private Long id;
     private String email;
     private String name;

@@ -6,8 +6,8 @@ import com.food_delivery_app.food_delivery_back_end.modules.auth.service.AuthSer
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantDto;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.entity.Restaurant;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.repostitory.RestaurantRepository;
-import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantDetailResponse;
-import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantResponse;
+import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantDetailResponseDto;
+import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantResponseDto;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.service.RestaurantService;
 import com.food_delivery_app.food_delivery_back_end.response.CustomPageResponse;
 import com.food_delivery_app.food_delivery_back_end.response.ResponseObject;
@@ -62,13 +62,13 @@ public class RestaurantController {
 
     //Get all restaurants
     @GetMapping("")
-    public ResponseEntity<CustomPageResponse<RestaurantResponse>> getRestaurants(
+    public ResponseEntity<CustomPageResponse<RestaurantResponseDto>> getRestaurants(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int limit
     ) {
-        Page<RestaurantResponse> restaurants = restaurantService.getAllRestaurants(page, limit);
+        Page<RestaurantResponseDto> restaurants = restaurantService.getAllRestaurants(page, limit);
         return ResponseEntity.ok(
-                CustomPageResponse.<RestaurantResponse>builder()
+                CustomPageResponse.<RestaurantResponseDto>builder()
                         .message("Get all restaurants successfully")
                         .status(HttpStatus.OK)
                         .data(restaurants.getContent())
@@ -82,7 +82,7 @@ public class RestaurantController {
     //Get restaurant by id
     @GetMapping("/{id}")
     public ResponseEntity<ResponseObject> getRestaurant(@PathVariable Long id) {
-        RestaurantDetailResponse restaurant = restaurantService.getRestaurant(id);
+        RestaurantDetailResponseDto restaurant = restaurantService.getRestaurant(id);
         return ResponseEntity.ok(
                 ResponseObject.builder()
                         .data(restaurant)

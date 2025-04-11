@@ -1,7 +1,5 @@
 package com.food_delivery_app.food_delivery_back_end.modules.cart.entity;
 
-import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantResponse;
-import com.food_delivery_app.food_delivery_back_end.modules.restaurant.entity.Restaurant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -75,6 +75,7 @@ public class AuthServiceImpl implements AuthService {
         }
         return RegisterResponse.builder()
                 .email(account.getEmail())
+                .fullName(registerDto.getFullName())
                 .build();
 
     }
@@ -109,6 +110,22 @@ public class AuthServiceImpl implements AuthService {
                 break;
         }
 
+        return true;
+    }
+
+    @Override
+    public boolean resendOtp(RegisterDto userAuthDto, RoleType roleType) {
+        Optional<Account> accountOpt = accountRepository.findByEmail(userAuthDto.getEmail());
+        if (accountOpt.isEmpty()) return false;
+
+        Account account = accountOpt.get();
+
+        // Nếu tài khoản đã xác thực và đã có role này → không cần gửi lại
+        boolean hasRole = accountRoleRepository.existsByAccountAndRoleType(account, roleType);
+        if (hasRole && "ACTIVE".equals(account.getStatus())) return false;
+
+        // Gửi lại OTP
+        otpService.generateAndSendOtp(account);
         return true;
     }
 
@@ -184,5 +201,10 @@ public class AuthServiceImpl implements AuthService {
                     .orElseThrow(() -> new DataNotFoundException("Restaurant not found"));
         }
         return null;
+    }
+
+    @Override
+    public void deleteAccount(Long accountId) {
+        accountRepository.deleteById(accountId);
     }
 }

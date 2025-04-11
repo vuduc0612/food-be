@@ -8,9 +8,8 @@ import com.food_delivery_app.food_delivery_back_end.modules.cart.entity.CartItem
 import com.food_delivery_app.food_delivery_back_end.modules.cart.service.CartService;
 import com.food_delivery_app.food_delivery_back_end.modules.dish.entity.Dish;
 import com.food_delivery_app.food_delivery_back_end.modules.dish.repository.DishRepository;
-import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantResponse;
-import com.food_delivery_app.food_delivery_back_end.modules.restaurant.entity.Restaurant;
-import com.food_delivery_app.food_delivery_back_end.modules.user.dto.UserDto;
+import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantResponseDto;
+import com.food_delivery_app.food_delivery_back_end.modules.user.dto.UserResponseDto;
 import com.food_delivery_app.food_delivery_back_end.modules.user.entity.User;
 import com.food_delivery_app.food_delivery_back_end.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +17,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.LinkedHashMap;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -41,7 +39,7 @@ public class RedisCartService implements CartService {
         User us = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        UserDto user = UserDto.builder()
+        UserResponseDto user = UserResponseDto.builder()
                 .id(us.getId())
                 .name(us.getUsername())
                 .email(us.getAccount().getEmail())
@@ -74,7 +72,7 @@ public class RedisCartService implements CartService {
         Dish dish = dishRepository.findById(dishId)
                 .orElseThrow(() -> new RuntimeException("Dish not found"));
 
-        RestaurantResponse newRestaurant = modelMapper.map(dish.getRestaurant(), RestaurantResponse.class);
+        RestaurantResponseDto newRestaurant = modelMapper.map(dish.getRestaurant(), RestaurantResponseDto.class);
 
         // Nếu giỏ không trống và khác nhà hàng
         if (!cart.getItems().isEmpty() && !cart.getRestaurant().getId().equals(newRestaurant.getId())) {

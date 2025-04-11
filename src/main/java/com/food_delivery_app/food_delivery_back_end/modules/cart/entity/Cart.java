@@ -1,11 +1,7 @@
 package com.food_delivery_app.food_delivery_back_end.modules.cart.entity;
 
-import com.food_delivery_app.food_delivery_back_end.constant.AddToCartResultType;
-import com.food_delivery_app.food_delivery_back_end.modules.dish.repository.DishRepository;
-import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantDto;
-import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantResponse;
-import com.food_delivery_app.food_delivery_back_end.modules.restaurant.entity.Restaurant;
-import com.food_delivery_app.food_delivery_back_end.modules.user.dto.UserDto;
+import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantResponseDto;
+import com.food_delivery_app.food_delivery_back_end.modules.user.dto.UserResponseDto;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.annotation.Scope;
@@ -19,8 +15,8 @@ import java.util.List;
 @Getter
 @Setter
 public class Cart {
-    private UserDto user;
-    private RestaurantResponse restaurant;
+    private UserResponseDto user;
+    private RestaurantResponseDto restaurant;
     private List<CartItem> items = new ArrayList<>();
     private Double totalAmount = 0.0;
 

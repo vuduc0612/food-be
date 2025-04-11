@@ -33,6 +33,6 @@ public class User {
 
     private String photoUrl;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private Set<Order> orders = new HashSet<>();
 }

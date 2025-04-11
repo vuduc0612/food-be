@@ -1,13 +1,11 @@
 package com.food_delivery_app.food_delivery_back_end.modules.user.service;
 
-import com.food_delivery_app.food_delivery_back_end.modules.user.dto.UserDto;
+import com.food_delivery_app.food_delivery_back_end.modules.user.dto.UserResponseDto;
 import org.springframework.data.domain.Page;
 
-import java.util.List;
-
 public interface UserService {
-    Page<UserDto> getAllUsers(int page, int limit);
-    UserDto updateUser(Long id, UserDto userDto);
-    UserDto getUser(Long id);
+    Page<UserResponseDto> getAllUsers(int page, int limit);
+    UserResponseDto updateUser(Long id, UserResponseDto userResponseDto);
+    UserResponseDto getUser(Long id);
     void deleteUser(Long id);
 }

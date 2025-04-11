@@ -7,8 +7,8 @@ import com.food_delivery_app.food_delivery_back_end.modules.dish.dto.DishDto;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantDto;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.entity.Restaurant;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.repostitory.RestaurantRepository;
-import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantDetailResponse;
-import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantResponse;
+import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantDetailResponseDto;
+import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantResponseDto;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.service.RestaurantService;
 import com.food_delivery_app.food_delivery_back_end.utils.UploadUtils;
 import lombok.RequiredArgsConstructor;
@@ -33,10 +33,9 @@ public class RestaurantServiceImpl implements RestaurantService {
     private final UploadUtils uploadUtils;
 
     @Override
-    public Page<RestaurantResponse> getAllRestaurants(int page, int limit) {
+    public Page<RestaurantResponseDto> getAllRestaurants(int page, int limit) {
         Pageable pageable = PageRequest.of(page, limit);
-        Page<RestaurantResponse> restaurants = restaurantRepository.findAllRestaurantsWithNameAndPhoneAndAddress(pageable);
-        return restaurants.map(restaurant -> modelMapper.map(restaurant, RestaurantResponse.class));
+        return restaurantRepository.findRestaurantsByActiveRole(pageable);
     }
 
     @Override
@@ -53,12 +52,12 @@ public class RestaurantServiceImpl implements RestaurantService {
     }
 
     @Override
-    public RestaurantDetailResponse getRestaurant(Long id) {
-        Restaurant restaurant = restaurantRepository.findById(id)
+    public RestaurantDetailResponseDto getRestaurant(Long id) {
+        Restaurant restaurant = restaurantRepository.findRestaurantById(id)
                 .orElseThrow(() -> new RuntimeException("Restaurant not found"));
-        RestaurantDetailResponse restaurantDetailResponse = modelMapper.map(restaurant, RestaurantDetailResponse.class);
-        restaurantDetailResponse.setPhoneNumber(restaurant.getAccount().getPhoneNumber());
-        restaurantDetailResponse.setEmail(restaurant.getAccount().getEmail());
+        RestaurantDetailResponseDto restaurantDetailResponseDto = modelMapper.map(restaurant, RestaurantDetailResponseDto.class);
+        restaurantDetailResponseDto.setPhoneNumber(restaurant.getAccount().getPhoneNumber());
+        restaurantDetailResponseDto.setEmail(restaurant.getAccount().getEmail());
         List<DishDto> dishDtos = restaurant.getDishes().stream()
                 .map(dish -> DishDto.builder()
                         .id(dish.getId())
@@ -69,9 +68,9 @@ public class RestaurantServiceImpl implements RestaurantService {
                         .price(dish.getPrice())
                         .build())
                 .collect(Collectors.toList());
-        restaurantDetailResponse.setDishes(dishDtos);
+        restaurantDetailResponseDto.setDishes(dishDtos);
 
-        return restaurantDetailResponse;
+        return restaurantDetailResponseDto;
     }
 
     @Override

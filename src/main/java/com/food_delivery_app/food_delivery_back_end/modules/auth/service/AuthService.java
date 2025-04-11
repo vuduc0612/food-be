@@ -11,8 +11,9 @@ import com.food_delivery_app.food_delivery_back_end.modules.user.entity.User;
 public interface AuthService {
     RegisterResponse register(RegisterDto userAuthDto, RoleType roleType);
     boolean verifyOtp(RegisterDto userAuthDto, String otp, RoleType roleType);
-
+    boolean resendOtp(RegisterDto userAuthDto, RoleType roleType);
     String login(LoginDto loginDto, RoleType roleType);
     User getCurrentUser();
     Restaurant getCurrentRestaurant();
+    void deleteAccount(Long accountId);
 }
