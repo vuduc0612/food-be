@@ -5,13 +5,12 @@ import com.food_delivery_app.food_delivery_back_end.exception.DataNotFoundExcept
 import com.food_delivery_app.food_delivery_back_end.exception.EntityExistsException;
 import com.food_delivery_app.food_delivery_back_end.exception.ForbiddenException;
 import com.food_delivery_app.food_delivery_back_end.exception.InvalidCredentialsException;
-import com.food_delivery_app.food_delivery_back_end.modules.auth.dto.LoginDto;
-import com.food_delivery_app.food_delivery_back_end.modules.auth.dto.RegisterDto;
-import com.food_delivery_app.food_delivery_back_end.modules.auth.dto.RegisterResponse;
+import com.food_delivery_app.food_delivery_back_end.modules.auth.dto.*;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.entity.Account;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.entity.AccountRole;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.repository.AccountRepository;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.repository.AccountRoleRepository;
+import com.food_delivery_app.food_delivery_back_end.modules.otp.repository.OtpRepository;
 import com.food_delivery_app.food_delivery_back_end.modules.otp.service.OtpService;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.entity.Restaurant;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.repostitory.RestaurantRepository;
@@ -43,6 +42,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final RestaurantRepository restaurantRepository;
     private final OtpService otpService;
+    private final OtpRepository otpRepository;
 
     @Override
     public RegisterResponse register(RegisterDto registerDto, RoleType roleType) {
@@ -79,8 +79,17 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
     }
+
+    /**
+     * Xác thực email sau khi đăng ký
+     * @param registerDto
+     * @param otpCode
+     * @param roleType
+     * @return boolean
+     */
+
     @Override
-    public boolean verifyOtp(RegisterDto registerDto, String otpCode, RoleType roleType) {
+    public boolean verifyEmail(RegisterDto registerDto, String otpCode, RoleType roleType) {
         Optional<Account> accountOptional = accountRepository.findByEmail(registerDto.getEmail());
         if (accountOptional.isEmpty()) return false;
 
@@ -112,6 +121,12 @@ public class AuthServiceImpl implements AuthService {
 
         return true;
     }
+    /**
+     * Gửi lại OTP đến email đã đăng ký
+     * @param userAuthDto
+     * @param roleType
+     * @return boolean
+     */
 
     @Override
     public boolean resendOtp(RegisterDto userAuthDto, RoleType roleType) {
@@ -123,6 +138,102 @@ public class AuthServiceImpl implements AuthService {
         // Nếu tài khoản đã xác thực và đã có role này → không cần gửi lại
         boolean hasRole = accountRoleRepository.existsByAccountAndRoleType(account, roleType);
         if (hasRole && "ACTIVE".equals(account.getStatus())) return false;
+
+        // Gửi lại OTP
+        otpService.generateAndSendOtp(account);
+        return true;
+    }
+
+    /**
+     * Gửi OTP đến email để xác thực quên mật khẩu
+     * @param forgotPasswordRequest
+     * @return boolean
+     */
+    @Override
+    public boolean forgotPassword(ForgotPasswordRequest forgotPasswordRequest) {
+        Optional<Account> accountOptional = accountRepository.findByEmail(forgotPasswordRequest.getEmail());
+        if (accountOptional.isEmpty()) {
+            throw new DataNotFoundException("Account not found with email.");
+        }
+        Account account = accountOptional.get();
+        if(!"ACTIVE".equals(account.getStatus())){
+            throw new EntityExistsException("Account isn't already active.");
+        }
+        // Gửi OTP đến email
+        otpService.generateAndSendOtp(account);
+        return true;
+    }
+
+    /**
+     * Xác thực OTP quên mật khẩu
+     * @param verifyResetOtpRequest
+     * @return boolean
+     */
+    @Override
+    public boolean verifyResetPasswordOtp(VerifyResetOtpRequest verifyResetOtpRequest) {
+        Optional<Account> accountOptional = accountRepository.findByEmail(verifyResetOtpRequest.getEmail());
+        if (accountOptional.isEmpty()){
+            throw new DataNotFoundException("Account not found with email.");
+        }
+
+        Account account = accountOptional.get();
+
+        // Kiểm tra tài khoản có active không
+        if (!"ACTIVE".equals(account.getStatus())) {
+            return false;
+        }
+
+        // Xác thực OTP
+        return otpService.verifyOtp(account, verifyResetOtpRequest.getOtpCode());
+    }
+
+    /**
+     * Đặt lại mật khẩu
+     * @param resetPasswordRequest
+     * @return boolean
+     */
+    @Override
+    public boolean resetPassword(ResetPasswordRequest resetPasswordRequest) {
+        Optional<Account> accountOptional = accountRepository.findByEmail(resetPasswordRequest.getEmail());
+        if (accountOptional.isEmpty()) return false;
+
+        Account account = accountOptional.get();
+
+        // Kiểm tra tài khoản có active không
+        if (!"ACTIVE".equals(account.getStatus())) {
+            return false;
+        }
+
+        // Xác thực OTP
+        boolean verified = otpRepository.existsByAccountAndVerifiedTrue(account);
+//        boolean verified = otpService.verifyOtp(account, resetPasswordRequest.getOtpCode());
+        if (!verified) {
+            return false;
+        }
+
+        // Mã hóa và cập nhật mật khẩu mới
+        account.setPassword(passwordEncoder.encode(resetPasswordRequest.getNewPassword()));
+        accountRepository.save(account);
+
+        return true;
+    }
+
+    /**
+     * Gửi lại OTP để đặt lại mật khẩu
+     * @param forgotPasswordRequest
+     * @return boolean
+     */
+    @Override
+    public boolean resendResetPasswordOtp(ForgotPasswordRequest forgotPasswordRequest) {
+        Optional<Account> accountOptional = accountRepository.findByEmail(forgotPasswordRequest.getEmail());
+        if (accountOptional.isEmpty()) return false;
+
+        Account account = accountOptional.get();
+
+        // Kiểm tra tài khoản có active không
+        if (!"ACTIVE".equals(account.getStatus())) {
+            return false;
+        }
 
         // Gửi lại OTP
         otpService.generateAndSendOtp(account);
@@ -167,8 +278,6 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-
-
     private void createRestaurant(Account account, RegisterDto registerDto) {
         if (account.getRestaurant() == null) {
             Restaurant restaurant = new Restaurant();
@@ -177,6 +286,7 @@ public class AuthServiceImpl implements AuthService {
             restaurantRepository.save(restaurant);
         }
     }
+
     @Override
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

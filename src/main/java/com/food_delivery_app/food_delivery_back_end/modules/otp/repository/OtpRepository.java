@@ -10,5 +10,6 @@ import java.util.Optional;
 @Repository
 public interface OtpRepository extends JpaRepository<OtpToken, Long> {
     Optional<OtpToken> findByAccountAndVerifiedFalseAndExpiryTimeAfter(Account account, LocalDateTime now);
+    boolean existsByAccountAndVerifiedTrue(Account account);
     void deleteByAccountAndVerifiedFalse(Account account);
 }
