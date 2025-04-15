@@ -1,18 +1,17 @@
 package com.food_delivery_app.food_delivery_back_end.modules.order.service.impl;
 
 import com.food_delivery_app.food_delivery_back_end.constant.OrderStatusType;
+import com.food_delivery_app.food_delivery_back_end.constant.PaymentMethodType;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.service.AuthService;
 import com.food_delivery_app.food_delivery_back_end.modules.cart.service.CartService;
 import com.food_delivery_app.food_delivery_back_end.modules.dish.repository.DishRepository;
 import com.food_delivery_app.food_delivery_back_end.modules.cart.entity.Cart;
 import com.food_delivery_app.food_delivery_back_end.modules.cart.entity.CartItem;
-import com.food_delivery_app.food_delivery_back_end.modules.order.dto.OrderDto;
+import com.food_delivery_app.food_delivery_back_end.modules.order.dto.*;
 import com.food_delivery_app.food_delivery_back_end.modules.order.entity.Order;
 import com.food_delivery_app.food_delivery_back_end.modules.order.entity.OrderDetail;
 import com.food_delivery_app.food_delivery_back_end.modules.order.repository.OrderDetailRepository;
 import com.food_delivery_app.food_delivery_back_end.modules.order.repository.OrderRepository;
-import com.food_delivery_app.food_delivery_back_end.modules.order.dto.OrderDetailResponse;
-import com.food_delivery_app.food_delivery_back_end.modules.order.dto.OrderResponse;
 import com.food_delivery_app.food_delivery_back_end.modules.order.service.OrderService;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.entity.Restaurant;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.repostitory.RestaurantRepository;
@@ -49,7 +48,8 @@ public class OrderServiceImpl implements OrderService {
     //place an order
     @Override
     @Transactional
-    public OrderResponse placeOrder() {
+    public OrderResponse createOrder(OrderRequestDto orderRequestDto) {
+        System.out.println("OrderRequestDto: " + orderRequestDto);
         User user = authService.getCurrentUser();
         Long userId = user.getId();
         User customer = userRepository.findById(userId)
@@ -68,9 +68,15 @@ public class OrderServiceImpl implements OrderService {
         order.setRestaurant(restaurant);
         order.setStatus(OrderStatusType.PENDING);
         order.setCreatedAt(LocalDateTime.now());
-        order.setTotalAmount(cart.getTotalAmount());
-        Order savedOrder = orderRepository.save(order);
+        order.setTotalAmount(orderRequestDto.getTotalAmount());
+        order.setDeliveryAddress(orderRequestDto.getDeliveryAddress());
+        order.setPaymentMethod(PaymentMethodType.valueOf(orderRequestDto.getPaymentMethod().toUpperCase()));
 
+        if("CASH".equalsIgnoreCase(orderRequestDto.getPaymentMethod())) {
+            order.setIsPaid(false);
+        }
+
+        Order savedOrder = orderRepository.save(order);
 
         for(CartItem cartItem : cart.getItems()){
             OrderDetail orderDetail = new OrderDetail();
@@ -90,8 +96,9 @@ public class OrderServiceImpl implements OrderService {
                     .map(orderDetail -> modelMapper.map(orderDetail, OrderDetailResponse.class))
                     .collect(Collectors.toList())
         );
-        cartService.clearCart(userId, cart);
-
+        if("CASH".equalsIgnoreCase(orderRequestDto.getPaymentMethod())) {
+            cartService.clearCart(userId, cart);
+        }
         return orderResponse;
     }
 
@@ -152,10 +159,10 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderResponse updateOrder(Long id, OrderDto order) {
-        Order existingOrder = orderRepository.findById(id)
+    public OrderResponse updateOrder(Long orderId, OrderUpdateRequestDto orderDto) {
+        Order existingOrder = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
-        existingOrder.setStatus(order.getStatus());
+        existingOrder.setStatus(OrderStatusType.valueOf(orderDto.getStatus().toUpperCase()));
         return modelMapper.map(orderRepository.save(existingOrder), OrderResponse.class);
     }
 

@@ -19,7 +19,7 @@ services:
     image: rabbitmq:3-management
     container_name: food-delivery-rabbitmq
     ports:
-      - "5672:5672"   # RabbitMQ standard port
+      - "6000:5672"   # RabbitMQ standard port
       - "15672:15672" # Management interface port
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq

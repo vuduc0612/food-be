@@ -6,17 +6,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
-public class OrderResponse {
-    private Long orderId;
-    private Double totalAmount;
-    private OrderStatusType status;
-    private String paymentUrl;
-    private List<OrderDetailResponse> orderDetailResponses;
-
+@AllArgsConstructor
+@NoArgsConstructor
+public class OrderUpdateRequestDto {
+    private String deliceryAddress;
+    private String status;
+    private String note;
 }

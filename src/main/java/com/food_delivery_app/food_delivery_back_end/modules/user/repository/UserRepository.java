@@ -40,6 +40,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
             AND u.id = :id
     """)
     Optional<UserResponseDto> findUserById(@Param("id") Long id);
-
+    @Query("""
+            SELECT u
+            FROM User u
+            JOIN u.orders o
+            WHERE o.id = :orderId
+    """)
+    Optional<User> findUserByOrderId(Long orderId);
 
 }

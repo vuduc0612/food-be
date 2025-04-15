@@ -1,10 +1,14 @@
 package com.food_delivery_app.food_delivery_back_end.modules.order.controller;
 
+import com.food_delivery_app.food_delivery_back_end.modules.order.dto.OrderRequestDto;
 import com.food_delivery_app.food_delivery_back_end.modules.order.dto.OrderResponse;
+import com.food_delivery_app.food_delivery_back_end.modules.order.dto.OrderUpdateRequestDto;
 import com.food_delivery_app.food_delivery_back_end.modules.order.service.OrderService;
 import com.food_delivery_app.food_delivery_back_end.response.CustomPageResponse;
+import com.food_delivery_app.food_delivery_back_end.response.ResponseObject;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -64,8 +68,45 @@ public class OrderController {
 
     @PostMapping("")
     @Operation(summary = "Place order", description = "Returns the order")
-    public ResponseEntity<OrderResponse> placeOrder() {
-        return ResponseEntity.ok(orderService.placeOrder());
+    public ResponseEntity<ResponseObject> placeOrder(@RequestBody  OrderRequestDto orderRequestDto) {
+
+        return ResponseEntity.ok(
+                ResponseObject.builder()
+                        .message("Place order successfully")
+                        .status(HttpStatus.OK)
+                        .data(orderService.createOrder(orderRequestDto))
+                        .build()
+        );
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('RESTAURANT')")
+    @Operation(summary = "Update order", description = "Returns the updated order")
+    public ResponseEntity<ResponseObject> updateOrder(
+            @PathVariable("id") Long id,
+            @RequestBody  OrderUpdateRequestDto orderRequestDto
+            ) {
+        return ResponseEntity.ok(
+                ResponseObject.builder()
+                        .message("Update order successfully")
+                        .status(HttpStatus.OK)
+                        .data(orderService.updateOrder(id, orderRequestDto))
+                        .build()
+        );
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @Operation(summary = "Delete order", description = "Returns the deleted order")
+    public ResponseEntity<ResponseObject> deleteOrder(@PathVariable("id") Long id) {
+        orderService.deleteOrder(id);
+        return ResponseEntity.ok(
+                ResponseObject.builder()
+                        .message("Delete order successfully")
+                        .status(HttpStatus.OK)
+                        .data(null)
+                        .build()
+        );
     }
 
 }

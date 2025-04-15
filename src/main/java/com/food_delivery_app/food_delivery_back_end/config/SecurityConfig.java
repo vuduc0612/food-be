@@ -70,27 +70,27 @@ public class SecurityConfig {
                                 String.format("%s/upload/**", apiPrefix)).permitAll()
 
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setContentType("application/json");
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            ObjectMapper mapper = new ObjectMapper();
+                            mapper.registerModule(new JavaTimeModule());
+                            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED.value(),
+                                    "Unauthorized");
+                            response.getWriter().write(mapper.writeValueAsString(errorResponse));
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setContentType("application/json");
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            ObjectMapper mapper = new ObjectMapper();
+                            mapper.registerModule(new JavaTimeModule());
+                            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.FORBIDDEN.value(),
+                                    "Forbidden");
+                            response.getWriter().write(mapper.writeValueAsString(errorResponse));
+                        })
                 );
-//                .exceptionHandling(exceptions -> exceptions
-//                        .authenticationEntryPoint((request, response, authException) -> {
-//                            response.setContentType("application/json");
-//                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-//                            ObjectMapper mapper = new ObjectMapper();
-//                            mapper.registerModule(new JavaTimeModule());
-//                            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED.value(),
-//                                    "Unauthorized");
-//                            response.getWriter().write(mapper.writeValueAsString(errorResponse));
-//                        })
-//                        .accessDeniedHandler((request, response, accessDeniedException) -> {
-//                            response.setContentType("application/json");
-//                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-//                            ObjectMapper mapper = new ObjectMapper();
-//                            mapper.registerModule(new JavaTimeModule());
-//                            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.FORBIDDEN.value(),
-//                                    "Forbidden");
-//                            response.getWriter().write(mapper.writeValueAsString(errorResponse));
-//                        })
-//                );
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

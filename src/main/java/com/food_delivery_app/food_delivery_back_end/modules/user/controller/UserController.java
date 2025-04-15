@@ -92,14 +92,18 @@ public class UserController {
 
     @GetMapping("/me")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public UserResponseDto getCurrentUser(){
+    public ResponseEntity<ResponseObject> getCurrentUser(){
         User user = authService.getCurrentUser();
-        return UserResponseDto.builder()
-                .id(user.getId())
-                .email(user.getAccount().getEmail())
-                .phoneNumber(user.getAccount().getPhoneNumber())
-                .address(user.getAddress())
-                .build();
+//        System.out.println(user);
+        UserResponseDto userResponseDto = userService.getUser(user.getId());
+//        System.out.println(userResponseDto);
+        return ResponseEntity.ok(
+                ResponseObject.builder()
+                        .message("Get current user successfully")
+                        .data(userResponseDto)
+                        .status(HttpStatus.OK)
+                        .build()
+        );
     }
 
     @PutMapping("/{id}")

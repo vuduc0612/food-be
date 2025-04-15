@@ -1,6 +1,7 @@
 package com.food_delivery_app.food_delivery_back_end.modules.order.entity;
 
 import com.food_delivery_app.food_delivery_back_end.constant.OrderStatusType;
+import com.food_delivery_app.food_delivery_back_end.constant.PaymentMethodType;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.entity.Restaurant;
 import com.food_delivery_app.food_delivery_back_end.modules.user.entity.User;
 import jakarta.persistence.*;
@@ -24,32 +25,36 @@ public class Order {
 
     private Double totalAmount;
     private OrderStatusType status;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-        //Địa chỉ giao hàng
+
     @Column(name = "delivery_address")
     private String deliveryAddress;
-        //Phương thức thanh toán
+
     @Column(name = "payment_method")
-    private String paymentMethod;
-        //Trạng thái thanh toán
-    @Column(name = "payment_status")
-    private String paymentStatus;
-     //Thời gian giao hàng
-     @Column(name = "delivery_time")
-     private LocalDateTime deliveryTime;
-     //Ghi chú
-     private String note;
+    private PaymentMethodType paymentMethod;
 
-     @ManyToOne
-     @JoinColumn(name = "user_id", nullable = false)
-     private User user;
+    @Column(name = "is_paid")
+    private Boolean isPaid;
 
-     @ManyToOne
-     @JoinColumn(name = "restaurant_id", nullable = false)
-     private Restaurant restaurant;
+    @Column(name = "delivery_time")
+    private LocalDateTime deliveryTime;
 
-     @OneToMany(mappedBy = "order", cascade = CascadeType.REMOVE, orphanRemoval = true)
-     private Set<OrderDetail> orderDetails = new HashSet<>();
+    @Column(name = "transaction_id")
+    private String transactionId;
+
+    private String note;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "restaurant_id", nullable = false)
+    private Restaurant restaurant;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private Set<OrderDetail> orderDetails = new HashSet<>();
 
 }
