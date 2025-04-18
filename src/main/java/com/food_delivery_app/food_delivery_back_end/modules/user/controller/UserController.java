@@ -10,6 +10,8 @@ import com.food_delivery_app.food_delivery_back_end.modules.user.service.UserSer
 import com.food_delivery_app.food_delivery_back_end.response.CustomPageResponse;
 import com.food_delivery_app.food_delivery_back_end.response.ResponseObject;
 import com.github.javafaker.Faker;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -24,6 +26,7 @@ import java.util.Locale;
 @RestController
 @RequestMapping("${api.prefix}/users")
 @AllArgsConstructor
+@Tag(name = "Users API", description = "Provides endpoints for users")
 public class UserController {
     private final ModelMapper modelMapper;
     private final UserRepository userRepository;
@@ -79,6 +82,8 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    @Operation(summary = "Get user by id", description = "Returns user by id")
     public ResponseEntity<ResponseObject> getUser(@PathVariable Long id){
         UserResponseDto userResponseDto = userService.getUser(id);
         return ResponseEntity.ok(
@@ -92,11 +97,10 @@ public class UserController {
 
     @GetMapping("/me")
     @PreAuthorize("hasRole('ROLE_USER')")
+    @Operation(summary = "Get current user", description = "Returns current user")
     public ResponseEntity<ResponseObject> getCurrentUser(){
         User user = authService.getCurrentUser();
-//        System.out.println(user);
         UserResponseDto userResponseDto = userService.getUser(user.getId());
-//        System.out.println(userResponseDto);
         return ResponseEntity.ok(
                 ResponseObject.builder()
                         .message("Get current user successfully")
@@ -108,6 +112,7 @@ public class UserController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_USER')")
+    @Operation(summary = "Update user", description = "Returns updated user")
     public ResponseEntity<ResponseObject> updateUser(
             @PathVariable Long id,
             @RequestBody UserResponseDto userResponseDto
@@ -124,6 +129,7 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Delete user", description = "Returns deleted user")
     public ResponseEntity<ResponseObject> deleteUser(@PathVariable Long id){
         userService.deleteUser(id);
         return ResponseEntity.ok(

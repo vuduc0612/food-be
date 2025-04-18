@@ -12,10 +12,14 @@ import com.food_delivery_app.food_delivery_back_end.modules.restaurant.service.R
 import com.food_delivery_app.food_delivery_back_end.response.CustomPageResponse;
 import com.food_delivery_app.food_delivery_back_end.response.ResponseObject;
 import com.github.javafaker.Faker;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.tags.Tags;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,6 +30,7 @@ import java.util.Locale;
 @RestController
 @RequestMapping("${api.prefix}/restaurants")
 @AllArgsConstructor
+@Tag(name = "Restaurants API", description = "Provides endpoints for restaurants")
 public class RestaurantController {
     private final RestaurantRepository restaurantRepository;
     private RestaurantService restaurantService;
@@ -62,6 +67,7 @@ public class RestaurantController {
 
     //Get all restaurants
     @GetMapping("")
+    @Operation(summary = "Get all restaurants", description = "Returns all restaurants")
     public ResponseEntity<CustomPageResponse<RestaurantResponseDto>> getRestaurants(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int limit
@@ -81,12 +87,29 @@ public class RestaurantController {
 
     //Get restaurant by id
     @GetMapping("/{id}")
+    @Operation(summary = "Get restaurant by id", description = "Returns restaurant by id")
     public ResponseEntity<ResponseObject> getRestaurant(@PathVariable Long id) {
         RestaurantDetailResponseDto restaurant = restaurantService.getRestaurant(id);
+        System.out.println("Restaurant: " + restaurant);
         return ResponseEntity.ok(
                 ResponseObject.builder()
                         .data(restaurant)
                         .message("Get restaurant successfully")
+                        .status(HttpStatus.OK)
+                        .build()
+        );
+    }
+    //Get profile restaurant
+    @GetMapping("/profile")
+    @PreAuthorize("hasRole('RESTAURANT')")
+    @Operation(summary = "Get restaurant profile", description = "Returns restaurant profile")
+    public ResponseEntity<ResponseObject> getRestaurantProfile() {
+        Long restaurantId = authService.getCurrentRestaurant().getId();
+        RestaurantDetailResponseDto restaurant = restaurantService.getRestaurant(restaurantId);
+        return ResponseEntity.ok(
+                ResponseObject.builder()
+                        .data(restaurant)
+                        .message("Get restaurant profile successfully")
                         .status(HttpStatus.OK)
                         .build()
         );

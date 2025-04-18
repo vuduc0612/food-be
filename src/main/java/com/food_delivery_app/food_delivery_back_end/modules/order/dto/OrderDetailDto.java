@@ -13,4 +13,5 @@ public class OrderDetailDto {
     private Long orderId;
     private Long dishId;
     private Integer quantity;
+
 }

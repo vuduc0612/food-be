@@ -73,7 +73,7 @@ public class RedisCartService implements CartService {
                 .orElseThrow(() -> new RuntimeException("Dish not found"));
 
         RestaurantResponseDto newRestaurant = modelMapper.map(dish.getRestaurant(), RestaurantResponseDto.class);
-
+//        System.out.println(newRestaurant.getLatitude() + " " + newRestaurant.getLongitude() + " " + newRestaurant.getName() + " " + newRestaurant.getId());
         // Nếu giỏ không trống và khác nhà hàng
         if (!cart.getItems().isEmpty() && !cart.getRestaurant().getId().equals(newRestaurant.getId())) {
             if (!force) {
@@ -116,6 +116,7 @@ public class RedisCartService implements CartService {
 
         CartDto cartDto = modelMapper.map(cart, CartDto.class);
         cartDto.setAddToCartResultType(AddToCartResultType.SUCCESS);
+        System.out.println(cartDto.getRestaurant().getLatitude() + " " + cartDto.getRestaurant().getLongitude() + " " + cartDto.getRestaurant().getName() + " " + cartDto.getRestaurant().getId());
         return cartDto;
     }
 

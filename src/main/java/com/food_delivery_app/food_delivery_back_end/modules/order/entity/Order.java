@@ -23,7 +23,14 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "total_amount")
     private Double totalAmount;
+
+    @Column(name = "fee_shipping")
+    private Double feeShipping;
+
+    private Double discount;
+
     private OrderStatusType status;
 
     @Column(name = "created_at")
@@ -54,7 +61,7 @@ public class Order {
     @JoinColumn(name = "restaurant_id", nullable = false)
     private Restaurant restaurant;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<OrderDetail> orderDetails = new HashSet<>();
 
 }

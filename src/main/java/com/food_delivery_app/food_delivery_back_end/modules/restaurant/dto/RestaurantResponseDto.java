@@ -16,4 +16,6 @@ public class RestaurantResponseDto {
     private String address;
     private String photoUrl;
     private String phoneNumber;
+    private Double longitude;
+    private Double latitude;
 }

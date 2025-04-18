@@ -58,6 +58,8 @@ public class RestaurantServiceImpl implements RestaurantService {
         RestaurantDetailResponseDto restaurantDetailResponseDto = modelMapper.map(restaurant, RestaurantDetailResponseDto.class);
         restaurantDetailResponseDto.setPhoneNumber(restaurant.getAccount().getPhoneNumber());
         restaurantDetailResponseDto.setEmail(restaurant.getAccount().getEmail());
+        restaurantDetailResponseDto.setLongitude(restaurant.getLongitude());
+        restaurantDetailResponseDto.setLatitude(restaurant.getLatitude());
         List<DishDto> dishDtos = restaurant.getDishes().stream()
                 .map(dish -> DishDto.builder()
                         .id(dish.getId())

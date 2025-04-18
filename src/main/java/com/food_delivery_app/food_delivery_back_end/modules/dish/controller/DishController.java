@@ -12,6 +12,7 @@ import com.food_delivery_app.food_delivery_back_end.response.ResponseObject;
 import com.food_delivery_app.food_delivery_back_end.utils.FileUtils;
 import com.food_delivery_app.food_delivery_back_end.utils.UploadUtils;
 import com.github.javafaker.Faker;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -73,6 +74,7 @@ public class DishController {
 
     //Get all dishes
     @GetMapping()
+    @Operation(summary = "Get all dishes", description = "Returns all dishes")
     public ResponseEntity<CustomPageResponse<DishDto>> getAllDishes(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int limit
@@ -91,6 +93,8 @@ public class DishController {
     }
     //Get dish by id restaurant
     @GetMapping("/restaurant/{id}")
+    @PreAuthorize("hasRole('RESTAURANT')")
+    @Operation(summary = "Get all dishes by restaurant", description = "Returns all dishes by restaurant")
     public ResponseEntity<CustomPageResponse<DishDto>> getDishesByRestaurant(
             @PathVariable Long id,
             @RequestParam(defaultValue = "0") int page,
@@ -111,6 +115,8 @@ public class DishController {
 
     //Get dishes by category and restaurant
     @GetMapping("/category/{categoryId}/restaurant/{restaurantId}")
+    @PreAuthorize("hasRole('RESTAURANT')")
+    @Operation(summary = "Get all dishes by category and restaurant", description = "Returns all dishes by category and restaurant")
     public ResponseEntity<CustomPageResponse<DishDto>> getDishesByCategoryAndRestaurant(
             @PathVariable Long categoryId,
             @PathVariable Long restaurantId,
@@ -132,7 +138,7 @@ public class DishController {
 
     //Create new dish
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-//    @PreAuthorize("hasRole('ROLE_RESTAURANT')")
+    @PreAuthorize("hasRole('ROLE_RESTAURANT')")
     public ResponseEntity<ResponseObject> createDish(@Valid @ModelAttribute DishDto dishDto,
                                                      @RequestPart("file") MultipartFile file) throws Exception {
         if(file == null){
@@ -153,7 +159,6 @@ public class DishController {
 //        dishDto.setThumbnail(fileName);
 
         String thumbnail = uploadUtils.uploadFile(file);
-//        System.out.println(thumbnail);
         dishDto.setThumbnail(thumbnail);
         Restaurant restaurant = authService.getCurrentRestaurant();
 
@@ -167,6 +172,7 @@ public class DishController {
 
     //Get image
     @GetMapping("/images/{imageName}")
+    @Operation(summary = "Get image of dish", description = "Returns image of dish")
     public ResponseEntity<?> getImage(@PathVariable String imageName){
         try{
             Path imagePath = Path.of(FileUtils.UPLOAD_DIR, imageName);
@@ -191,6 +197,8 @@ public class DishController {
 
     //Update dish
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_RESTAURANT')")
+    @Operation(summary = "Update dish", description = "Returns updated dish")
     public ResponseEntity<ResponseObject> updateDish(
             @PathVariable Long id,
             @RequestBody DishDto dishDto) {
@@ -203,6 +211,8 @@ public class DishController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_RESTAURANT')")
+    @Operation(summary = "Delete dish", description = "Returns deleted dish")
     public ResponseEntity<ResponseObject> deleteDish(@PathVariable Long id) {
         dishService.deleteDish(id);
         return ResponseEntity.ok(ResponseObject.builder()

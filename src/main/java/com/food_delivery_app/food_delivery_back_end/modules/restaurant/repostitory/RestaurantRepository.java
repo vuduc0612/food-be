@@ -21,7 +21,7 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
 
     @Query("""
             SELECT new com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantResponseDto(
-            r.id, r.account.email, r.name, r.address, r.photoUrl, r.account.phoneNumber
+            r.id, r.account.email, r.name, r.address, r.photoUrl, r.account.phoneNumber, r.longitude, r.latitude
             ) 
             FROM Restaurant r 
             JOIN r.account a 

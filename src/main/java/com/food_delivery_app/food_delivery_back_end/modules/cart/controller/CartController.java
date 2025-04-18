@@ -8,6 +8,7 @@ import com.food_delivery_app.food_delivery_back_end.modules.cart.entity.Cart;
 import com.food_delivery_app.food_delivery_back_end.modules.cart.service.CartService;
 import com.food_delivery_app.food_delivery_back_end.response.ResponseObject;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("${api.prefix}/carts")
 @RequiredArgsConstructor
+@Tag(name = "Carts API", description = "Provides endpoints for carts")
 public class CartController {
     private final CartService cartService;
     private final AuthService authService;

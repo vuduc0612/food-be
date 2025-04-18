@@ -19,5 +19,7 @@ public class OrderRequestDto {
     private Boolean isPaid;
     @NotNull()
     private Double totalAmount;
+    private Double feeShipping;
+    private Double discount;
 
 }

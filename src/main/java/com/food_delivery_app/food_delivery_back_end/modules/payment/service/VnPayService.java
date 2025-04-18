@@ -95,6 +95,7 @@ public class VnPayService {
                 order.setTransactionId(vnp_TxnRef);
                 order.setIsPaid(true);
                 orderRepository.save(order);
+//                System.out.println("Order after payment: " + order.getId() + " - " + order.getIsPaid() + " - " + order.getTransactionId());
                 User user = userRepository.findById(order.getUser().getId())
                         .orElseThrow(() -> new DataNotFoundException("User not found"));
                 CartDto cart = cartService.getCart(user.getId());

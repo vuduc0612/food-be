@@ -3,6 +3,7 @@ package com.food_delivery_app.food_delivery_back_end.mail.controller;
 import com.food_delivery_app.food_delivery_back_end.mail.entity.EmailMessage;
 import com.food_delivery_app.food_delivery_back_end.mail.service.EmailService;
 import com.food_delivery_app.food_delivery_back_end.mail.service.MailService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("${api.prefix}/mail")
+@Tag(name = "Mail API", description = "Provides endpoints for mail")
 public class MailController {
     private final MailService mailService;
     private final EmailService emailService;
