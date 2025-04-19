@@ -14,6 +14,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @Service
 public class CategoryServiceImpl implements CategoryService {
@@ -31,11 +33,18 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public Page<CategoryDto> getAllCategories(Long restaurantId, int page, int limit) {
-        Pageable pageable = PageRequest.of(page, limit);
+    public List<CategoryDto> getAllCategories(Long restaurantId) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new RuntimeException("Restaurant not found"));
-        Page<CategoryDto> categoryDtos = categoryRepository.findByRestaurant(restaurant, pageable);
+        List<Category> categories = categoryRepository.findByRestaurant(restaurant);
+        List<CategoryDto> categoryDtos = categories.stream()
+                .map(category ->{
+                    return CategoryDto.builder()
+                            .id(category.getId())
+                            .name(category.getName())
+                            .build();
+                })
+                .toList();
         return categoryDtos;
     }
 

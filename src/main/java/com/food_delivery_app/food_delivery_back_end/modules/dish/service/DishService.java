@@ -13,7 +13,7 @@ import java.util.Optional;
 @Service
 public interface DishService {
     Page<DishDto> getAllDishes(int page, int limit);
-    Page<DishDto> getAllDishByRestaurant(Long restaurantId, int page, int limit);
+    Page<DishDto> getAllDishByRestaurant(Long restaurantId, Long categoryId, String keyword, int page, int limit);
     Page<DishDto> getAllDishByCategory(Long categoryId, Long restaurantId, int page, int limit);
     DishDto getDishById(Long id);
     Optional<DishDto> getDish(Long id);

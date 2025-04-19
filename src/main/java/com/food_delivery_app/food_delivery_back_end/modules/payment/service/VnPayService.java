@@ -75,6 +75,7 @@ public class VnPayService {
         String vnp_BankCode = vnp_Params.get("vnp_BankCode");
 
         String vnpOrderInfo = vnp_Params.get("vnp_OrderInfo");
+        System.out.println("vnpOrderInfo: " + vnpOrderInfo);
         String[] parts = vnpOrderInfo.split(":");
         Long orderId = Long.parseLong(parts[1]);
 

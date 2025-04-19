@@ -33,9 +33,9 @@ public class RestaurantServiceImpl implements RestaurantService {
     private final UploadUtils uploadUtils;
 
     @Override
-    public Page<RestaurantResponseDto> getAllRestaurants(int page, int limit) {
+    public Page<RestaurantResponseDto> getAllRestaurants(String keyword, int page, int limit) {
         Pageable pageable = PageRequest.of(page, limit);
-        return restaurantRepository.findRestaurantsByActiveRole(pageable);
+        return restaurantRepository.findRestaurantsByActiveRole(keyword,pageable);
     }
 
     @Override

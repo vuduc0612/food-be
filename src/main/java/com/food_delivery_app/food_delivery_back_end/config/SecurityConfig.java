@@ -52,19 +52,11 @@ public class SecurityConfig {
                                 "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 String.format("%s/users/**", apiPrefix)).permitAll()
-                        .requestMatchers(HttpMethod.DELETE,
-                                String.format("%s/users/**", apiPrefix)).permitAll()
-                        .requestMatchers(HttpMethod.PUT,
-                                String.format("%s/users/**", apiPrefix)).permitAll()
-                        .requestMatchers(
-                                String.format("%s/delivery/**", apiPrefix)).permitAll()
                         .requestMatchers(
                                 String.format("%s/mail/**", apiPrefix)).permitAll()
-                        .requestMatchers(
-                                String.format("%s/sms/**", apiPrefix)).permitAll()
-                        .requestMatchers(
+                        .requestMatchers(HttpMethod.GET,
                                 String.format("%s/restaurants/**", apiPrefix)).permitAll()
-                        .requestMatchers(
+                        .requestMatchers(HttpMethod.GET,
                                 String.format("%s/dishes/**", apiPrefix)).permitAll()
                         .requestMatchers(
                                 String.format("%s/upload/**", apiPrefix)).permitAll()

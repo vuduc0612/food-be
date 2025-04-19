@@ -11,7 +11,7 @@ import java.io.IOException;
 
 @Service
 public interface RestaurantService {
-    Page<RestaurantResponseDto> getAllRestaurants(int page, int limit);
+    Page<RestaurantResponseDto> getAllRestaurants(String keyword, int page, int limit);
     RestaurantDto updateRestaurant(Long id, RestaurantDto restaurantDto);
     RestaurantDetailResponseDto getRestaurant(Long id);
 //    RestaurantResponse getRestaurant(Long id);

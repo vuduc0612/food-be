@@ -13,7 +13,6 @@ public class OrderDetailResponse {
     @JsonProperty("dish_name")
     private String dishName;
     private Integer quantity;
-    @JsonProperty("dish_price")
     private Double totalPrice;
     private String thumbnail;
 }

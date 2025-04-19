@@ -69,10 +69,11 @@ public class RestaurantController {
     @GetMapping("")
     @Operation(summary = "Get all restaurants", description = "Returns all restaurants")
     public ResponseEntity<CustomPageResponse<RestaurantResponseDto>> getRestaurants(
+            @RequestParam(defaultValue = "") String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int limit
     ) {
-        Page<RestaurantResponseDto> restaurants = restaurantService.getAllRestaurants(page, limit);
+        Page<RestaurantResponseDto> restaurants = restaurantService.getAllRestaurants(keyword, page, limit);
         return ResponseEntity.ok(
                 CustomPageResponse.<RestaurantResponseDto>builder()
                         .message("Get all restaurants successfully")

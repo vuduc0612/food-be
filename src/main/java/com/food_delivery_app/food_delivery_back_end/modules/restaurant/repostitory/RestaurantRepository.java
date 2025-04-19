@@ -20,15 +20,21 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
     Optional<Restaurant> findByAccountId(Long accountId);
 
     @Query("""
-            SELECT new com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantResponseDto(
-            r.id, r.account.email, r.name, r.address, r.photoUrl, r.account.phoneNumber, r.longitude, r.latitude
-            ) 
+            SELECT DISTINCT new com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantResponseDto(
+               r.id, r.account.email, r.name, r.address, r.photoUrl, r.account.phoneNumber, r.longitude, r.latitude
+            )
             FROM Restaurant r 
             JOIN r.account a 
             JOIN a.accountRoles ar 
-            WHERE ar.isActive = true AND ar.roleType = "ROLE_RESTAURANT"
-        """)
-    Page<RestaurantResponseDto> findRestaurantsByActiveRole(Pageable pageable);
+            JOIN r.dishes d 
+            WHERE ar.isActive = true 
+            AND ar.roleType = 'ROLE_RESTAURANT'
+            AND (
+                LOWER(r.name) LIKE LOWER(CONCAT('%', :keyword, '%')) 
+                OR LOWER(d.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+            )
+    """)
+    Page<RestaurantResponseDto> findRestaurantsByActiveRole(@Param("keyword") String keyword, Pageable pageable);
 
     @Query("""
             SELECT r FROM Restaurant r

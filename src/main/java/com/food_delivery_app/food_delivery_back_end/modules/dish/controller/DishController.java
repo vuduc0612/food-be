@@ -97,10 +97,37 @@ public class DishController {
     @Operation(summary = "Get all dishes by restaurant", description = "Returns all dishes by restaurant")
     public ResponseEntity<CustomPageResponse<DishDto>> getDishesByRestaurant(
             @PathVariable Long id,
+            @RequestParam(defaultValue = "null") Long categoryId,
+            @RequestParam(defaultValue = "") String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int limit
     ) {
-        Page<DishDto> dishDtos = dishService.getAllDishByRestaurant(id, page, limit);
+        Page<DishDto> dishDtos = dishService.getAllDishByRestaurant(id,categoryId, keyword, page, limit);
+        return ResponseEntity.ok(
+                CustomPageResponse.<DishDto>builder()
+                        .message("Get all dishes successfully")
+                        .status(HttpStatus.OK)
+                        .data(dishDtos.getContent())
+                        .currentPage(dishDtos.getNumber())
+                        .totalItems(dishDtos.getTotalElements())
+                        .totalPages(dishDtos.getTotalPages())
+                        .build()
+        );
+    }
+
+    @GetMapping("/restaurant/me")
+    @PreAuthorize("hasRole('RESTAURANT')")
+    @Operation(summary = "Get all dishes by restaurant", description = "Returns all dishes by restaurant")
+    public ResponseEntity<CustomPageResponse<DishDto>> getDishesByRestaurantCurrent(
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int limit
+    ) {
+        Long id = authService.getCurrentRestaurant().getId();
+        System.out.println("===> categoryId: " + categoryId);
+        System.out.println("===> keyword: " + keyword);
+        Page<DishDto> dishDtos = dishService.getAllDishByRestaurant(id,categoryId, keyword, page, limit);
         return ResponseEntity.ok(
                 CustomPageResponse.<DishDto>builder()
                         .message("Get all dishes successfully")

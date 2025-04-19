@@ -35,13 +35,18 @@ public class DishServiceImpl implements DishService {
     }
 
     @Override
-    public Page<DishDto> getAllDishByRestaurant(Long restaurantId, int page, int limit) {
+    public Page<DishDto> getAllDishByRestaurant(Long restaurantId, Long categoryId, String keyword, int page, int limit) {
         Pageable pageable = PageRequest.of(page, limit);
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new RuntimeException("Restaurant not found"));
-        Page<Dish> dishPage = dishRepository.findByRestaurant(restaurant, pageable);
+        Page<Dish> dishPage = dishRepository.findDishes(restaurant, categoryId, keyword, pageable);
 
-        return dishPage.map(dish -> modelMapper.map(dish, DishDto.class));
+        return dishPage.map(dish -> {
+            DishDto dishDto = modelMapper.map(dish, DishDto.class);
+            dishDto.setCategory(dish.getCategory().getName());
+            return dishDto;
+
+        });
     }
 
     @Override

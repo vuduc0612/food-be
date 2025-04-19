@@ -1,5 +1,6 @@
 package com.food_delivery_app.food_delivery_back_end.modules.category.controller;
 
+import com.food_delivery_app.food_delivery_back_end.modules.auth.service.AuthService;
 import com.food_delivery_app.food_delivery_back_end.modules.category.dto.CategoryDto;
 import com.food_delivery_app.food_delivery_back_end.modules.category.service.CategoryService;
 import com.food_delivery_app.food_delivery_back_end.response.ResponseObject;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Categories API", description = "Provides endpoints for categories")
 public class CategoryController {
     private final CategoryService categoryService;
+    private final AuthService authService;
     @PostMapping("")
     public ResponseEntity<ResponseObject> createCategory(@RequestBody CategoryDto categoryDto){
         CategoryDto newCategory = categoryService.createCategory(categoryDto);
@@ -28,13 +30,23 @@ public class CategoryController {
     }
     @GetMapping("/{restaurantId}")
     public ResponseEntity<ResponseObject> getAllCategories(
-            @PathVariable Long restaurantId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int limit
+            @PathVariable Long restaurantId
     ){
         return ResponseEntity.ok(
                 ResponseObject.builder()
-                        .data(categoryService.getAllCategories(restaurantId, page, limit))
+                        .data(categoryService.getAllCategories(restaurantId))
+                        .message("Get all categories successfully!")
+                        .status(HttpStatus.OK)
+                        .build()
+        );
+    }
+    @GetMapping("/current")
+    public ResponseEntity<ResponseObject> getAllCategoriesOfCurrentRestaurant(
+    ){
+        Long restaurantId = authService.getCurrentRestaurant().getId();
+        return ResponseEntity.ok(
+                ResponseObject.builder()
+                        .data(categoryService.getAllCategories(restaurantId))
                         .message("Get all categories successfully!")
                         .status(HttpStatus.OK)
                         .build()

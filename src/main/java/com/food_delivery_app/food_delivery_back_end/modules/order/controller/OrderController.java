@@ -1,5 +1,6 @@
 package com.food_delivery_app.food_delivery_back_end.modules.order.controller;
 
+import com.food_delivery_app.food_delivery_back_end.constant.OrderStatusType;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.service.AuthService;
 import com.food_delivery_app.food_delivery_back_end.modules.order.dto.OrderRequestDto;
 import com.food_delivery_app.food_delivery_back_end.modules.order.dto.OrderResponseDto;
@@ -30,10 +31,12 @@ public class OrderController {
     @Operation(summary = "Get all orders", description = "Returns all orders")
     public ResponseEntity<CustomPageResponse<OrderResponseDto>> getAllOrderOfUser(
             @PathVariable("user_id") Long userId,
+            @RequestParam(defaultValue = "DELIVERED") String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int limit
-    ){
-        Page<OrderResponseDto> orderResponses = orderService.getAllOrderOfUser(userId, page, limit);
+    ) {
+        OrderStatusType orderStatusType = OrderStatusType.valueOf(status.toUpperCase());
+        Page<OrderResponseDto> orderResponses = orderService.getAllOrderOfUser(userId, orderStatusType, page, limit);
 
         return ResponseEntity.ok(
                 CustomPageResponse.<OrderResponseDto>builder()
@@ -51,11 +54,13 @@ public class OrderController {
     @PreAuthorize("hasRole('USER')")
     @Operation(summary = "Get all orders", description = "Returns all orders")
     public ResponseEntity<CustomPageResponse<OrderResponseDto>> getAllOrderOfUserCurrent(
+            @RequestParam(defaultValue = "DELIVERED") String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int limit
-    ){
+    ) {
         Long userId = authSevice.getCurrentUser().getId();
-        Page<OrderResponseDto> orderResponses = orderService.getAllOrderOfUser(userId, page, limit);
+        OrderStatusType orderStatusType = OrderStatusType.valueOf(status.toUpperCase());
+        Page<OrderResponseDto> orderResponses = orderService.getAllOrderOfUser(userId, orderStatusType, page, limit);
 
         return ResponseEntity.ok(
                 CustomPageResponse.<OrderResponseDto>builder()
@@ -69,16 +74,22 @@ public class OrderController {
     }
 
 
-
     //Get all order of restaurant
     @GetMapping("restaurants/{restaurant_id}")
     @PreAuthorize("hasRole('RESTAURANT')")
     public ResponseEntity<CustomPageResponse<OrderResponseDto>> getAllOrderOfRestaurant(
             @PathVariable("restaurant_id") Long restaurantId,
+            @RequestParam(defaultValue = "") String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int limit
-    ){
-        Page<OrderResponseDto> orderResponses = orderService.getAllOrderOfRestaurant(restaurantId, page, limit);
+    ) {
+        OrderStatusType orderStatusType;
+        if (status.equals("null")) {
+            orderStatusType = null;
+        } else {
+            orderStatusType = OrderStatusType.valueOf(status.toUpperCase());
+        }
+        Page<OrderResponseDto> orderResponses = orderService.getAllOrderOfRestaurant(restaurantId, orderStatusType, page, limit);
 
         return ResponseEntity.ok(
                 CustomPageResponse.<OrderResponseDto>builder()
@@ -96,11 +107,18 @@ public class OrderController {
     @PreAuthorize("hasRole('RESTAURANT')")
     @Operation(summary = "Get all orders", description = "Returns all orders")
     public ResponseEntity<CustomPageResponse<OrderResponseDto>> getAllOrderOfRestaurantCurrent(
+            @RequestParam(defaultValue = "null") String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int limit
-    ){
+    ) {
         Long restaurantId = authSevice.getCurrentRestaurant().getId();
-        Page<OrderResponseDto> orderResponses = orderService.getAllOrderOfRestaurant(restaurantId, page, limit);
+        OrderStatusType orderStatusType;
+        if (status.equals("null")) {
+            orderStatusType = null;
+        } else {
+            orderStatusType = OrderStatusType.valueOf(status.toUpperCase());
+        }
+        Page<OrderResponseDto> orderResponses = orderService.getAllOrderOfRestaurant(restaurantId, orderStatusType, page, limit);
 
         return ResponseEntity.ok(
                 CustomPageResponse.<OrderResponseDto>builder()
@@ -132,7 +150,7 @@ public class OrderController {
     @PostMapping("")
     @PreAuthorize("hasRole('CUSTOMER')")
     @Operation(summary = "Place order", description = "Returns the order")
-    public ResponseEntity<ResponseObject> placeOrder(@RequestBody  OrderRequestDto orderRequestDto) {
+    public ResponseEntity<ResponseObject> placeOrder(@RequestBody OrderRequestDto orderRequestDto) {
 
         return ResponseEntity.ok(
                 ResponseObject.builder()
@@ -149,8 +167,8 @@ public class OrderController {
     @Operation(summary = "Update order", description = "Returns the updated order")
     public ResponseEntity<ResponseObject> updateOrder(
             @PathVariable("id") Long id,
-            @RequestBody  OrderUpdateRequestDto orderRequestDto
-            ) {
+            @RequestBody OrderUpdateRequestDto orderRequestDto
+    ) {
         return ResponseEntity.ok(
                 ResponseObject.builder()
                         .message("Update order successfully")

@@ -112,13 +112,14 @@ public class OrderServiceImpl implements OrderService {
 
     //Get all order of user
     @Override
-    public Page<OrderResponseDto> getAllOrderOfUser(Long userId, int page, int limit) {
+    public Page<OrderResponseDto> getAllOrderOfUser(Long userId,OrderStatusType status, int page, int limit) {
         Pageable pageable = PageRequest.of(page, limit);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        Page<Order> orders = orderRepository.findByUser(user, pageable);
+        Page<Order> orders = orderRepository.findByUserAndStatus(user, pageable, status);
 
         Page<OrderResponseDto> orderResponses = orders.map(order -> {
+
                         OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
                         orderResponseDto.setOrderDetailResponses(
                                 order.getOrderDetails().stream()
@@ -133,11 +134,14 @@ public class OrderServiceImpl implements OrderService {
 
     //Get alll order of restaurant
     @Override
-    public Page<OrderResponseDto> getAllOrderOfRestaurant(Long restaurantId, int page, int limit) {
+    public Page<OrderResponseDto> getAllOrderOfRestaurant(Long restaurantId, OrderStatusType status, int page, int limit) {
         Pageable pageable = PageRequest.of(page, limit);
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new RuntimeException("Restaurant not found"));
-        Page<Order> orders = orderRepository.findByRestaurant(restaurant, pageable);
+        Page<Order> orders = orderRepository.findByRestaurantAndStatus(restaurant, pageable, status);
+        if(status == null){
+            orders = orderRepository.findByRestaurant(restaurant, pageable);
+        }
 
 
         Page<OrderResponseDto> orderResponses = orders.map(order -> {
@@ -159,13 +163,19 @@ public class OrderServiceImpl implements OrderService {
         return orderResponses;
     }
 
+
     @Override
     public OrderResponseDto getOrder(Long id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
         OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
 
-        orderResponseDto.setUser(modelMapper.map(order.getUser(), UserResponseDto.class));
+        orderResponseDto.setUser(UserResponseDto.builder()
+                        .name(order.getUser().getUsername())
+                        .email(order.getUser().getAccount().getEmail())
+                        .phoneNumber(order.getUser().getAccount().getPhoneNumber())
+                        .address(order.getUser().getAddress())
+                        .build());
         orderResponseDto.setOrderDetailResponses(
                 order.getOrderDetails().stream()
                         .map(orderDetail -> {
