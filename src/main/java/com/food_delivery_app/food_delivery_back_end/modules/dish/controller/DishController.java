@@ -1,7 +1,10 @@
 package com.food_delivery_app.food_delivery_back_end.modules.dish.controller;
 
+import com.food_delivery_app.food_delivery_back_end.constant.DishStatusType;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.service.AuthService;
-import com.food_delivery_app.food_delivery_back_end.modules.dish.dto.DishDto;
+import com.food_delivery_app.food_delivery_back_end.modules.dish.dto.DishRequestDto;
+import com.food_delivery_app.food_delivery_back_end.modules.dish.dto.DishResponseDto;
+import com.food_delivery_app.food_delivery_back_end.modules.dish.dto.DishStatusRequestDto;
 import com.food_delivery_app.food_delivery_back_end.modules.dish.entity.Dish;
 import com.food_delivery_app.food_delivery_back_end.modules.dish.repository.DishRepository;
 import com.food_delivery_app.food_delivery_back_end.modules.dish.service.DishService;
@@ -75,13 +78,13 @@ public class DishController {
     //Get all dishes
     @GetMapping()
     @Operation(summary = "Get all dishes", description = "Returns all dishes")
-    public ResponseEntity<CustomPageResponse<DishDto>> getAllDishes(
+    public ResponseEntity<CustomPageResponse<DishResponseDto>> getAllDishes(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int limit
+            @RequestParam(defaultValue = "500") int limit
     ) {
-        Page<DishDto> dishDtos = dishService.getAllDishes(page, limit);
+        Page<DishResponseDto> dishDtos = dishService.getAllDishes(page, limit);
         return ResponseEntity.ok(
-                CustomPageResponse.<DishDto>builder()
+                CustomPageResponse.<DishResponseDto>builder()
                         .message("Get all dishes successfully")
                         .status(HttpStatus.OK)
                         .data(dishDtos.getContent())
@@ -95,16 +98,16 @@ public class DishController {
     @GetMapping("/restaurant/{id}")
     @PreAuthorize("hasRole('RESTAURANT')")
     @Operation(summary = "Get all dishes by restaurant", description = "Returns all dishes by restaurant")
-    public ResponseEntity<CustomPageResponse<DishDto>> getDishesByRestaurant(
+    public ResponseEntity<CustomPageResponse<DishResponseDto>> getDishesByRestaurant(
             @PathVariable Long id,
             @RequestParam(defaultValue = "null") Long categoryId,
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int limit
     ) {
-        Page<DishDto> dishDtos = dishService.getAllDishByRestaurant(id,categoryId, keyword, page, limit);
+        Page<DishResponseDto> dishDtos = dishService.getAllDishByRestaurant(id,categoryId, keyword, page, limit);
         return ResponseEntity.ok(
-                CustomPageResponse.<DishDto>builder()
+                CustomPageResponse.<DishResponseDto>builder()
                         .message("Get all dishes successfully")
                         .status(HttpStatus.OK)
                         .data(dishDtos.getContent())
@@ -118,18 +121,16 @@ public class DishController {
     @GetMapping("/restaurant/me")
     @PreAuthorize("hasRole('RESTAURANT')")
     @Operation(summary = "Get all dishes by restaurant", description = "Returns all dishes by restaurant")
-    public ResponseEntity<CustomPageResponse<DishDto>> getDishesByRestaurantCurrent(
+    public ResponseEntity<CustomPageResponse<DishResponseDto>> getDishesByRestaurantCurrent(
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int limit
     ) {
         Long id = authService.getCurrentRestaurant().getId();
-        System.out.println("===> categoryId: " + categoryId);
-        System.out.println("===> keyword: " + keyword);
-        Page<DishDto> dishDtos = dishService.getAllDishByRestaurant(id,categoryId, keyword, page, limit);
+        Page<DishResponseDto> dishDtos = dishService.getAllDishByRestaurant(id,categoryId, keyword, page, limit);
         return ResponseEntity.ok(
-                CustomPageResponse.<DishDto>builder()
+                CustomPageResponse.<DishResponseDto>builder()
                         .message("Get all dishes successfully")
                         .status(HttpStatus.OK)
                         .data(dishDtos.getContent())
@@ -144,15 +145,15 @@ public class DishController {
     @GetMapping("/category/{categoryId}/restaurant/{restaurantId}")
     @PreAuthorize("hasRole('RESTAURANT')")
     @Operation(summary = "Get all dishes by category and restaurant", description = "Returns all dishes by category and restaurant")
-    public ResponseEntity<CustomPageResponse<DishDto>> getDishesByCategoryAndRestaurant(
+    public ResponseEntity<CustomPageResponse<DishResponseDto>> getDishesByCategoryAndRestaurant(
             @PathVariable Long categoryId,
             @PathVariable Long restaurantId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int limit
     ) {
-        Page<DishDto> dishDtos = dishService.getAllDishByCategory(categoryId, restaurantId, page, limit);
+        Page<DishResponseDto> dishDtos = dishService.getAllDishByCategory(categoryId, restaurantId, page, limit);
         return ResponseEntity.ok(
-                CustomPageResponse.<DishDto>builder()
+                CustomPageResponse.<DishResponseDto>builder()
                         .message("Get all dishes successfully")
                         .status(HttpStatus.OK)
                         .data(dishDtos.getContent())
@@ -163,11 +164,25 @@ public class DishController {
         );
     }
 
+    //Get dish by id
+    @GetMapping("/{id}")
+    @Operation(summary = "Get dish by id", description = "Returns dish by id")
+    public ResponseEntity<ResponseObject> getDishById(@PathVariable Long id) {
+        DishResponseDto dishResponseDto = dishService.getDishById(id);
+        return ResponseEntity.ok(ResponseObject.builder()
+                .data(dishResponseDto)
+                .message("Get dish successfully")
+                .status(HttpStatus.OK)
+                .build());
+    }
+
     //Create new dish
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ROLE_RESTAURANT')")
-    public ResponseEntity<ResponseObject> createDish(@Valid @ModelAttribute DishDto dishDto,
+    public ResponseEntity<ResponseObject> createDish(@Valid @ModelAttribute DishRequestDto dishRequestDto,
                                                      @RequestPart("file") MultipartFile file) throws Exception {
+        Long restaurantId = authService.getCurrentRestaurant().getId();
+        System.out.println("Data request dish: " + dishRequestDto);
         if(file == null){
             return ResponseEntity.badRequest().body(ResponseObject.builder()
                     .message("File is required")
@@ -180,19 +195,14 @@ public class DishController {
                     .status(HttpStatus.BAD_REQUEST)
                     .build());
         }
-//
-//        String fileName = FileUtils.storeFile(file);
-//        System.out.println(fileName);
-//        dishDto.setThumbnail(fileName);
 
         String thumbnail = uploadUtils.uploadFile(file);
-        dishDto.setThumbnail(thumbnail);
-        Restaurant restaurant = authService.getCurrentRestaurant();
+        dishRequestDto.setThumbnail(thumbnail);
 
-        DishDto newDish = dishService.createDish(dishDto, dishDto.getRestaurantId());
+        DishResponseDto newDish = dishService.createDish(dishRequestDto, restaurantId);
         return ResponseEntity.ok(ResponseObject.builder()
                 .data(newDish)
-                .message("Update dish successfully")
+                .message("Create dish successfully")
                 .status(HttpStatus.CREATED)
                 .build());
     }
@@ -223,16 +233,47 @@ public class DishController {
     }
 
     //Update dish
-    @PutMapping("/{id}")
+    @PutMapping(path = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ROLE_RESTAURANT')")
     @Operation(summary = "Update dish", description = "Returns updated dish")
     public ResponseEntity<ResponseObject> updateDish(
             @PathVariable Long id,
-            @RequestBody DishDto dishDto) {
-        DishDto updatedDishDto = dishService.updateDish(id, dishDto);
+            @Valid @ModelAttribute("dishRequestDto") DishRequestDto dishRequestDto,
+            @RequestPart("file") MultipartFile file) throws Exception {
+
+        System.out.println("Data request dish: " + dishRequestDto);
+        Long restaurantId = authService.getCurrentRestaurant().getId();
+        if (file != null && !file.isEmpty()) {
+            if (file.getSize() > 10 * 1024 * 1024) {
+                return ResponseEntity.badRequest().body(ResponseObject.builder()
+                        .message("File size is too large")
+                        .status(HttpStatus.BAD_REQUEST)
+                        .build());
+            }
+
+            String thumbnail = uploadUtils.uploadFile(file);
+            dishRequestDto.setThumbnail(thumbnail);
+        }
+
+        DishResponseDto updatedDishResponseDto = dishService.updateDish(id, restaurantId, dishRequestDto);
         return ResponseEntity.ok(ResponseObject.builder()
-                .data(updatedDishDto)
+                .data(updatedDishResponseDto)
                 .message("Update dish successfully")
+                .status(HttpStatus.OK)
+                .build());
+    }
+
+    @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_RESTAURANT')")
+    @Operation(summary = "Update dish status", description = "Returns updated dish status")
+    public ResponseEntity<ResponseObject> updateDishStatus(@PathVariable Long id,
+                                                           @RequestBody DishStatusRequestDto dishStatus) {
+        Long restaurantId = authService.getCurrentRestaurant().getId();
+        DishResponseDto updatedDishResponseDto = dishService.updateStatusDish(id, restaurantId, dishStatus);
+        System.out.println("Update dish status: " + updatedDishResponseDto);
+        return ResponseEntity.ok(ResponseObject.builder()
+                .data(updatedDishResponseDto)
+                .message("Update dish status successfully")
                 .status(HttpStatus.OK)
                 .build());
     }
@@ -241,7 +282,8 @@ public class DishController {
     @PreAuthorize("hasRole('ROLE_RESTAURANT')")
     @Operation(summary = "Delete dish", description = "Returns deleted dish")
     public ResponseEntity<ResponseObject> deleteDish(@PathVariable Long id) {
-        dishService.deleteDish(id);
+        Long restaurantId = authService.getCurrentRestaurant().getId();
+        dishService.deleteDish(id, restaurantId);
         return ResponseEntity.ok(ResponseObject.builder()
                 .message("Delete dish successfully")
                 .status(HttpStatus.OK)

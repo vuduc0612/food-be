@@ -31,4 +31,15 @@ public class FileUtils {
         // Trả về đường dẫn tương đối
         return "/" + newFileName;
     }
+
+    public static boolean checkFile(MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new RuntimeException("File is empty");
+        }
+        String contentType = file.getContentType();
+        if (!contentType.equals("image/jpeg") && !contentType.equals("image/png")) {
+            throw new RuntimeException("Invalid file type");
+        }
+        return true;
+    }
 }

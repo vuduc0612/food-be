@@ -3,7 +3,7 @@ package com.food_delivery_app.food_delivery_back_end.modules.restaurant.service.
 import com.food_delivery_app.food_delivery_back_end.modules.auth.entity.Account;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.entity.AccountRole;
 import com.food_delivery_app.food_delivery_back_end.modules.auth.repository.AccountRepository;
-import com.food_delivery_app.food_delivery_back_end.modules.dish.dto.DishDto;
+import com.food_delivery_app.food_delivery_back_end.modules.dish.dto.DishResponseDto;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.RestaurantDto;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.entity.Restaurant;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.repostitory.RestaurantRepository;
@@ -60,8 +60,8 @@ public class RestaurantServiceImpl implements RestaurantService {
         restaurantDetailResponseDto.setEmail(restaurant.getAccount().getEmail());
         restaurantDetailResponseDto.setLongitude(restaurant.getLongitude());
         restaurantDetailResponseDto.setLatitude(restaurant.getLatitude());
-        List<DishDto> dishDtos = restaurant.getDishes().stream()
-                .map(dish -> DishDto.builder()
+        List<DishResponseDto> dishResponseDtos = restaurant.getDishes().stream()
+                .map(dish -> DishResponseDto.builder()
                         .id(dish.getId())
                         .name(dish.getName())
                         .description(dish.getDescription())
@@ -70,7 +70,7 @@ public class RestaurantServiceImpl implements RestaurantService {
                         .price(dish.getPrice())
                         .build())
                 .collect(Collectors.toList());
-        restaurantDetailResponseDto.setDishes(dishDtos);
+        restaurantDetailResponseDto.setDishes(dishResponseDtos);
 
         return restaurantDetailResponseDto;
     }

@@ -1,6 +1,6 @@
 package com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto;
 
-import com.food_delivery_app.food_delivery_back_end.modules.dish.dto.DishDto;
+import com.food_delivery_app.food_delivery_back_end.modules.dish.dto.DishResponseDto;
 import lombok.*;
 
 import java.util.List;
@@ -19,5 +19,5 @@ public class RestaurantDetailResponseDto {
     private String phoneNumber;
     private Double longitude;
     private Double latitude;
-    private List<DishDto> dishes;
+    private List<DishResponseDto> dishes;
 }

@@ -1,5 +1,6 @@
 package com.food_delivery_app.food_delivery_back_end.modules.dish.entity;
 
+import com.food_delivery_app.food_delivery_back_end.constant.DishStatusType;
 import com.food_delivery_app.food_delivery_back_end.modules.category.entity.Category;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.entity.Restaurant;
 import jakarta.persistence.*;
@@ -24,7 +25,8 @@ public class Dish {
     private String thumbnail;
     private Double price;
     private Double discount;
-    private Boolean isAvailable;
+    private DishStatusType isAvailable;
+
 
     @ManyToOne
     @JoinColumn(name = "restaurant_id", nullable = false)

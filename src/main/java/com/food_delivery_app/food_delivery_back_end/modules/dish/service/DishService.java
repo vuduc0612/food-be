@@ -1,23 +1,22 @@
 package com.food_delivery_app.food_delivery_back_end.modules.dish.service;
 
-import com.food_delivery_app.food_delivery_back_end.modules.dish.dto.DishDto;
-import com.food_delivery_app.food_delivery_back_end.modules.dish.entity.Dish;
+import com.food_delivery_app.food_delivery_back_end.constant.DishStatusType;
+import com.food_delivery_app.food_delivery_back_end.modules.dish.dto.DishRequestDto;
+import com.food_delivery_app.food_delivery_back_end.modules.dish.dto.DishResponseDto;
 
-import com.food_delivery_app.food_delivery_back_end.modules.restaurant.entity.Restaurant;
+import com.food_delivery_app.food_delivery_back_end.modules.dish.dto.DishStatusRequestDto;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.util.Optional;
 @Service
 public interface DishService {
-    Page<DishDto> getAllDishes(int page, int limit);
-    Page<DishDto> getAllDishByRestaurant(Long restaurantId, Long categoryId, String keyword, int page, int limit);
-    Page<DishDto> getAllDishByCategory(Long categoryId, Long restaurantId, int page, int limit);
-    DishDto getDishById(Long id);
-    Optional<DishDto> getDish(Long id);
-    DishDto createDish(DishDto dishDto, Long restaurantId);
-    DishDto updateDish(Long id, DishDto dishDto);
-    void deleteDish(Long id);
+    Page<DishResponseDto> getAllDishes(int page, int limit);
+    Page<DishResponseDto> getAllDishByRestaurant(Long restaurantId, Long categoryId, String keyword, int page, int limit);
+    Page<DishResponseDto> getAllDishByCategory(Long categoryId, Long restaurantId, int page, int limit);
+    DishResponseDto getDishById(Long id);
+    DishResponseDto createDish(DishRequestDto dishResponseDto, Long restaurantId);
+    DishResponseDto updateDish(Long id, Long restaurantId, DishRequestDto dishRequestDto);
+    DishResponseDto updateStatusDish(Long id, Long restaurantId, DishStatusRequestDto status);
+    void deleteDish(Long id, Long restaurantId);
 }
