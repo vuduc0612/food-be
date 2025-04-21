@@ -59,9 +59,8 @@ public class RestaurantServiceImpl implements RestaurantService {
     }
 
     @Override
-    @Cacheable(value = "restaurantDetail", key = "#id")
+
     public RestaurantDetailResponseDto getRestaurant(Long id) {
-        log.info("CACHE MISS - Lấy chi tiết nhà hàng từ database: id={}", id);
         Restaurant restaurant = restaurantRepository.findRestaurantById(id)
                 .orElseThrow(() -> new RuntimeException("Restaurant not found"));
         RestaurantDetailResponseDto restaurantDetailResponseDto = modelMapper.map(restaurant, RestaurantDetailResponseDto.class);
@@ -77,6 +76,7 @@ public class RestaurantServiceImpl implements RestaurantService {
                         .thumbnail(dish.getThumbnail())
                         .category(dish.getCategory().getName())
                         .price(dish.getPrice())
+                        .isAvailable(dish.getIsAvailable())
                         .build())
                 .collect(Collectors.toList());
         restaurantDetailResponseDto.setDishes(dishResponseDtos);
