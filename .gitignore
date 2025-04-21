@@ -15,7 +15,6 @@ target/
 #src/main/resources/application.yml
 plan.md
 structure.md
-cache_dish_plan.md
 ### IntelliJ IDEA ###
 .idea
 *.iws
