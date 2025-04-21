@@ -100,13 +100,13 @@ public class DishServiceImpl implements DishService {
                 .build();
 
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
-                .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+                .orElseThrow(() -> new DataNotFoundException("Restaurant not found"));
         dish.setRestaurant(restaurant);
 
         Category category;
         if(categoryRepository.existsByName(dishRequestDto.getCategoryName())){
             category = categoryRepository.findByName(dishRequestDto.getCategoryName())
-                    .orElseThrow(() -> new RuntimeException("Category not found"));
+                    .orElseThrow(() -> new DataNotFoundException("Category not found"));
         } else {
             Category newCategory = Category.builder()
                     .name(dishRequestDto.getCategoryName())
@@ -115,6 +115,7 @@ public class DishServiceImpl implements DishService {
             category = categoryRepository.save(newCategory);
         }
         dish.setCategory(category);
+        dish.setIsAvailable(DishStatusType.AVAILABLE);
 
         return modelMapper.map(dishRepository.save(dish), DishResponseDto.class);
     }
@@ -122,10 +123,12 @@ public class DishServiceImpl implements DishService {
     @Override
     public DishResponseDto updateDish(Long id, Long restaurantId, DishRequestDto dishRequestDto) {
         Dish dish = dishRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Dish not found"));
+                .orElseThrow(() -> new DataNotFoundException("Dish not found"));
         if(dish.getRestaurant().getId() != restaurantId){
             throw new DataNotFoundException("Dish not found in restaurant with id: " + restaurantId);
         }
+        Restaurant restaurant = restaurantRepository.findById(restaurantId)
+                .orElseThrow(() -> new DataNotFoundException("Restaurant not found"));
         System.out.println(dishRequestDto.getPrice() + " " + dishRequestDto.getName() + " " + dishRequestDto.getDescription()
                 + " " + dishRequestDto.getThumbnail() + " " + dishRequestDto.getCategoryName());
         dish.setName(dishRequestDto.getName());
@@ -133,8 +136,17 @@ public class DishServiceImpl implements DishService {
         dish.setDescription(dishRequestDto.getDescription());
         dish.setThumbnail(dishRequestDto.getThumbnail());
 
-        Category category = categoryRepository.findByName(dishRequestDto.getCategoryName())
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+        Category category;
+        if(categoryRepository.existsByName(dishRequestDto.getCategoryName())){
+            category = categoryRepository.findByName(dishRequestDto.getCategoryName())
+                    .orElseThrow(() -> new DataNotFoundException("Category not found"));
+        } else {
+            Category newCategory = Category.builder()
+                    .name(dishRequestDto.getCategoryName())
+                    .build();
+            newCategory.setRestaurant(restaurant);
+            category = categoryRepository.save(newCategory);
+        }
         dish.setCategory(category);
         dishRepository.save(dish);
         return modelMapper.map(dishRepository.save(dish), DishResponseDto.class);

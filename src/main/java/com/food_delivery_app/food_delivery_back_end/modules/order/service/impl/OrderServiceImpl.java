@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.stream.Collectors;
 
 
@@ -171,11 +172,11 @@ public class OrderServiceImpl implements OrderService {
         OrderResponseDto orderResponseDto = modelMapper.map(order, OrderResponseDto.class);
 
         orderResponseDto.setUser(UserResponseDto.builder()
-                        .name(order.getUser().getUsername())
-                        .email(order.getUser().getAccount().getEmail())
-                        .phoneNumber(order.getUser().getAccount().getPhoneNumber())
-                        .address(order.getUser().getAddress())
-                        .build());
+                .name(order.getUser().getUsername())
+                .email(order.getUser().getAccount().getEmail())
+                .phoneNumber(order.getUser().getAccount().getPhoneNumber())
+                .address(order.getUser().getAddress())
+                .build());
         orderResponseDto.setOrderDetailResponses(
                 order.getOrderDetails().stream()
                         .map(orderDetail -> {
@@ -191,6 +192,12 @@ public class OrderServiceImpl implements OrderService {
         );
         return orderResponseDto;
 
+    }
+
+    @Override
+    public List<UserResponseDto> getUserByRestaurant(Long restaurantId){
+
+        return null;
     }
 
     @Override

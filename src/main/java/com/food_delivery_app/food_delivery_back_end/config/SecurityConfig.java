@@ -60,6 +60,8 @@ public class SecurityConfig {
                                 String.format("%s/dishes/**", apiPrefix)).permitAll()
                         .requestMatchers(
                                 String.format("%s/upload/**", apiPrefix)).permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                String.format("%s/statistics/**", apiPrefix)).permitAll()
 
                         .anyRequest().authenticated()
                 )
