@@ -14,7 +14,10 @@ import com.food_delivery_app.food_delivery_back_end.modules.dish.service.DishSer
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.entity.Restaurant;
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.repostitory.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,21 +27,23 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DishServiceImpl implements DishService {
     private final ModelMapper modelMapper;
     private final DishRepository dishRepository;
     private final RestaurantRepository restaurantRepository;
     private final CategoryRepository categoryRepository;
-    private final CategoryService categoryService;
 
     @Override
+    @Cacheable(value = "restaurantDishes", key = "{#page, #limit}")
     public Page<DishResponseDto> getAllDishes(int page, int limit) {
+        log.info("CACHE MISS - Lấy tất cả món ăn từ database: page={}, limit={}", page, limit);
         Pageable pageable = PageRequest.of(page, limit);
         Page<Dish> dishPage = dishRepository.findAll(pageable);
         dishPage.map(
                 dish -> {
-                   dish.setIsAvailable(DishStatusType.AVAILABLE);
-                   dishRepository.save(dish);
+                   //dish.setIsAvailable(DishStatusType.AVAILABLE);
+                   //dishRepository.save(dish);
                    return dish;
                 }
         );
@@ -46,7 +51,11 @@ public class DishServiceImpl implements DishService {
     }
 
     @Override
+    @Cacheable(value = "restaurantDishes", key = "{#restaurantId, #categoryId, #keyword, #page, #limit}")
     public Page<DishResponseDto> getAllDishByRestaurant(Long restaurantId, Long categoryId, String keyword, int page, int limit) {
+        log.info("CACHE MISS - Lấy danh sách món ăn theo nhà hàng từ database: restaurantId={}, categoryId={}, keyword={}, page={}, limit={}", 
+                restaurantId, categoryId, keyword, page, limit);
+                
         Pageable pageable = PageRequest.of(page, limit);
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new RuntimeException("Restaurant not found"));
@@ -61,7 +70,11 @@ public class DishServiceImpl implements DishService {
     }
 
     @Override
+    @Cacheable(value = "categoryDishes", key = "{#categoryId, #restaurantId, #page, #limit}")
     public Page<DishResponseDto> getAllDishByCategory(Long categoryId, Long restaurantId, int page, int limit) {
+        log.info("CACHE MISS - Lấy danh sách món ăn theo danh mục từ database: categoryId={}, restaurantId={}, page={}, limit={}", 
+                categoryId, restaurantId, page, limit);
+                
         Pageable pageable = PageRequest.of(page, limit);
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new RuntimeException("Restaurant not found"));
@@ -91,7 +104,10 @@ public class DishServiceImpl implements DishService {
 
 
     @Override
+    @CacheEvict(value = {"restaurantDishes", "categoryDishes"}, allEntries = true)
     public DishResponseDto createDish(DishRequestDto dishRequestDto, Long restaurantId) {
+        log.info("XÓA CACHE - Tạo món ăn mới và xóa cache danh sách món ăn");
+        
         Dish dish = Dish.builder()
                 .name(dishRequestDto.getName())
                 .price(dishRequestDto.getPrice())
@@ -121,7 +137,10 @@ public class DishServiceImpl implements DishService {
     }
 
     @Override
+    @CacheEvict(value = {"restaurantDishes", "categoryDishes"}, allEntries = true)
     public DishResponseDto updateDish(Long id, Long restaurantId, DishRequestDto dishRequestDto) {
+        log.info("XÓA CACHE - Cập nhật món ăn và xóa cache danh sách món ăn: id={}, restaurantId={}", id, restaurantId);
+        
         Dish dish = dishRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("Dish not found"));
         if(dish.getRestaurant().getId() != restaurantId){
@@ -153,7 +172,10 @@ public class DishServiceImpl implements DishService {
     }
 
     @Override
+    @CacheEvict(value = {"restaurantDishes", "categoryDishes"}, allEntries = true)
     public DishResponseDto updateStatusDish(Long id, Long restaurantId, DishStatusRequestDto dishStatus) {
+        log.info("XÓA CACHE - Cập nhật trạng thái món ăn và xóa cache danh sách món ăn: id={}, restaurantId={}", id, restaurantId);
+        
         Dish dish = dishRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Dish not found"));
         if(dish.getRestaurant().getId() != restaurantId){
@@ -165,7 +187,10 @@ public class DishServiceImpl implements DishService {
 
 
     @Override
+    @CacheEvict(value = {"restaurantDishes", "categoryDishes"}, allEntries = true)
     public void deleteDish(Long id, Long restaurantId) {
+        log.info("XÓA CACHE - Xóa món ăn và xóa cache danh sách món ăn: id={}, restaurantId={}", id, restaurantId);
+        
         Dish dish = dishRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Dish not found"));
         if(dish.getRestaurant().getId() != restaurantId){

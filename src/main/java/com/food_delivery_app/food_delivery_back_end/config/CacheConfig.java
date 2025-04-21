@@ -31,6 +31,22 @@ public class CacheConfig {
                         RedisCacheConfiguration.defaultCacheConfig()
                                 .entryTtl(Duration.ofMinutes(30)) // Thống kê doanh thu cache 30 phút
                 )
+                .withCacheConfiguration("restaurantDishes", 
+                        RedisCacheConfiguration.defaultCacheConfig()
+                                .entryTtl(Duration.ofMinutes(30)) // Danh sách món ăn theo nhà hàng cache 30 phút
+                )
+                .withCacheConfiguration("categoryDishes", 
+                        RedisCacheConfiguration.defaultCacheConfig()
+                                .entryTtl(Duration.ofMinutes(30)) // Danh sách món ăn theo danh mục cache 30 phút
+                )
+                .withCacheConfiguration("restaurantList", 
+                        RedisCacheConfiguration.defaultCacheConfig()
+                                .entryTtl(Duration.ofMinutes(30)) // Danh sách nhà hàng cache 30 phút
+                )
+                .withCacheConfiguration("restaurantDetail", 
+                        RedisCacheConfiguration.defaultCacheConfig()
+                                .entryTtl(Duration.ofHours(1)) // Chi tiết nhà hàng cache 1 giờ
+                )
                 .transactionAware()
                 .build();
     }

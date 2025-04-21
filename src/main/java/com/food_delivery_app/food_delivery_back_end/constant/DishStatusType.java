@@ -1,9 +1,13 @@
 package com.food_delivery_app.food_delivery_back_end.constant;
 
-public enum DishStatusType {
+import java.io.Serializable;
+
+public enum DishStatusType implements Serializable {
     AVAILABLE("available"),
     UNAVAILABLE("unavailable"),
-    DELETE("delete");;
+    DELETE("delete");
+    
+    private static final long serialVersionUID = 1L;
     private final String status;
 
     DishStatusType(String status) {

@@ -5,11 +5,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
 @Getter
-public class RestaurantResponseDto {
+public class RestaurantResponseDto implements Serializable {
+    private static final long serialVersionUID = 1L;
+    
     private Long id;
     private String email;
     private String name;

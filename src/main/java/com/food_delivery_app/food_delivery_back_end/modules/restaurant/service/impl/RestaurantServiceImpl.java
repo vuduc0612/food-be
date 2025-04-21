@@ -12,7 +12,10 @@ import com.food_delivery_app.food_delivery_back_end.modules.restaurant.dto.Resta
 import com.food_delivery_app.food_delivery_back_end.modules.restaurant.service.RestaurantService;
 import com.food_delivery_app.food_delivery_back_end.utils.UploadUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +29,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RestaurantServiceImpl implements RestaurantService {
     private final ModelMapper modelMapper;
     private final RestaurantRepository restaurantRepository;
@@ -33,13 +37,17 @@ public class RestaurantServiceImpl implements RestaurantService {
     private final UploadUtils uploadUtils;
 
     @Override
+    @Cacheable(value = "restaurantList", key = "{#keyword, #page, #limit}")
     public Page<RestaurantResponseDto> getAllRestaurants(String keyword, int page, int limit) {
+        log.info("CACHE MISS - Lấy danh sách nhà hàng từ database: keyword={}, page={}, limit={}", keyword, page, limit);
         Pageable pageable = PageRequest.of(page, limit);
-        return restaurantRepository.findRestaurantsByActiveRole(keyword,pageable);
+        return restaurantRepository.findRestaurantsByActiveRole(keyword, pageable);
     }
 
     @Override
+    @CacheEvict(value = {"restaurantList", "restaurantDetail"}, allEntries = true)
     public RestaurantDto updateRestaurant(Long id, RestaurantDto restaurantDto) {
+        log.info("XÓA CACHE - Cập nhật thông tin nhà hàng và xóa cache: id={}", id);
         Restaurant restaurant = restaurantRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Restaurant not found"));
         restaurant.setName(restaurantDto.getName());
@@ -48,11 +56,12 @@ public class RestaurantServiceImpl implements RestaurantService {
         restaurantRepository.save(restaurant);
 
         return modelMapper.map(restaurant, RestaurantDto.class);
-
     }
 
     @Override
+    @Cacheable(value = "restaurantDetail", key = "#id")
     public RestaurantDetailResponseDto getRestaurant(Long id) {
+        log.info("CACHE MISS - Lấy chi tiết nhà hàng từ database: id={}", id);
         Restaurant restaurant = restaurantRepository.findRestaurantById(id)
                 .orElseThrow(() -> new RuntimeException("Restaurant not found"));
         RestaurantDetailResponseDto restaurantDetailResponseDto = modelMapper.map(restaurant, RestaurantDetailResponseDto.class);
@@ -76,7 +85,9 @@ public class RestaurantServiceImpl implements RestaurantService {
     }
 
     @Override
+    @CacheEvict(value = {"restaurantList", "restaurantDetail"}, allEntries = true)
     public void deleteRestaurant(Long id) {
+        log.info("XÓA CACHE - Xóa nhà hàng và xóa cache: id={}", id);
         Restaurant restaurant = restaurantRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Restaurant not found"));
         Account account = accountRepository.findAccountByRestaurant(restaurant)
@@ -94,7 +105,9 @@ public class RestaurantServiceImpl implements RestaurantService {
     }
 
     @Override
+    @CacheEvict(value = {"restaurantList", "restaurantDetail"}, allEntries = true)
     public String uploadImage(Long id, MultipartFile file) throws IOException {
+        log.info("XÓA CACHE - Cập nhật ảnh nhà hàng và xóa cache: id={}", id);
         Restaurant restaurant = restaurantRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Restaurant not found"));
         String uploadUrl = uploadUtils.uploadFile(file);
@@ -103,5 +116,4 @@ public class RestaurantServiceImpl implements RestaurantService {
 
         return uploadUrl;
     }
-
 }
