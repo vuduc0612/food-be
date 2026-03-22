@@ -1,16 +1,15 @@
 package com.fooddelivery;
 
-import com.food_delivery_app.food_delivery_back_end.FoodDeliveryBackEndApplication;
+import com.fooddelivery.fooddeliveryapp.FoodDeliveryApplication;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SpringBootTest(classes = FoodDeliveryBackEndApplication.class)
+@SpringBootTest(classes = FoodDeliveryApplication.class)
 public class RedisConnectionTest {
 
 

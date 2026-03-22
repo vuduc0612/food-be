@@ -16,7 +16,7 @@ services:
       - TZ=Asia/Ho_Chi_Minh
 
   rabbitmq:
-    image: rabbitmq:3-management
+    image: rabbitmq:3.13-management
     container_name: food-delivery-rabbitmq
     ports:
       - "6000:5672"   # RabbitMQ standard port

@@ -8,11 +8,10 @@
 		<version>3.4.3</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.food-delivery-app</groupId>
-	<artifactId>food-delivery-back-end</artifactId>
+	<groupId>com.food-delivery</groupId>
+	<artifactId>food-delivery-app</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>food-delivery-back-end</name>
-	<description>Demo project for Spring Boot</description>
+	<name>food-delivery-app</name>
 	<url/>
 	<licenses>
 		<license/>

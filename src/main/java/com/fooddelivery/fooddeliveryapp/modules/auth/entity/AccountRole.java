@@ -1,0 +1,27 @@
+package com.fooddelivery.fooddeliveryapp.modules.auth.entity;
+
+import com.fooddelivery.fooddeliveryapp.constant.RoleType;
+import jakarta.persistence.*;
+import lombok.*;
+
+@Entity
+@Table(name = "account_role")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class AccountRole {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "account_id")
+    private Account account;
+
+    @Enumerated(EnumType.STRING)
+    private RoleType roleType;
+
+    private boolean isActive;
+}

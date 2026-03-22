@@ -1,0 +1,25 @@
+package com.fooddelivery.fooddeliveryapp.modules.order.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.*;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+public class OrderRequestDto {
+    @NotBlank(message = "Delivery address cannot be blank")
+    private String deliveryAddress;
+
+    private String note;
+    @NotBlank()
+    private String paymentMethod;
+    private Boolean isPaid;
+    @NotNull()
+    private Double totalAmount;
+    private Double feeShipping;
+    private Double discount;
+
+}
