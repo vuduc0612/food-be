@@ -76,7 +76,7 @@ server:
 
 vnpay:
   pay-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-  return-url: http://localhost:5173/vnpay-return
-  tmn-code: PXACY1OA
-  hash-secret: KW9A0UBN1U8T2J0626RXIJ559T0DE7ON
+  return-url: ${VNPAY_RETURN_URL:http://localhost:5173/vnpay-return}
+  tmn-code: ${TMN_CODE}
+  hash-secret: ${VNPAY_SECRET_KEY}
   api-url: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction

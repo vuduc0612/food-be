@@ -14,20 +14,44 @@ import com.fooddelivery.fooddeliveryapp.modules.order.repository.OrderRepository
 import com.fooddelivery.fooddeliveryapp.modules.payment.dto.PaymentDto;
 import com.fooddelivery.fooddeliveryapp.modules.payment.dto.PaymentResponse;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 @Service
-@RequiredArgsConstructor
 public class VnPayService {
+    private static final Logger log = LoggerFactory.getLogger(VnPayService.class);
+
     private final OrderRepository orderRepository;
     private final VNPayConfig vnPayConfig;
     private final CartService cartService;
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final OrderService orderService;
+    private final Executor orderTaskExecutor;
+
+    public VnPayService(
+            OrderRepository orderRepository,
+            VNPayConfig vnPayConfig,
+            CartService cartService,
+            UserRepository userRepository,
+            ModelMapper modelMapper,
+            OrderService orderService,
+            @Qualifier("orderTaskExecutor") Executor orderTaskExecutor) {
+        this.orderRepository = orderRepository;
+        this.vnPayConfig = vnPayConfig;
+        this.cartService = cartService;
+        this.userRepository = userRepository;
+        this.modelMapper = modelMapper;
+        this.orderService = orderService;
+        this.orderTaskExecutor = orderTaskExecutor;
+    }
 
     public String createPaymentUrl(PaymentDto paymentDto, HttpServletRequest request) {
         System.out.println("Payment DTO: " + paymentDto);
@@ -74,11 +98,11 @@ public class VnPayService {
         String vnp_BankCode = vnp_Params.get("vnp_BankCode");
 
         String vnpOrderInfo = vnp_Params.get("vnp_OrderInfo");
-        System.out.println("vnpOrderInfo: " + vnpOrderInfo);
+        log.info("[paymentCallback] vnpOrderInfo: {}", vnpOrderInfo);
         String[] parts = vnpOrderInfo.split(":");
         Long orderId = Long.parseLong(parts[1]);
 
-        System.out.println("Order ID: " + orderId);
+        log.info("[paymentCallback] Order ID: {}", orderId);
         PaymentResponse paymentResponse = new PaymentResponse();
         paymentResponse.setTransactionId(vnp_TransactionNo);
 
@@ -86,20 +110,41 @@ public class VnPayService {
         if (validateCallback(vnp_Params)) {
             if ("00".equals(vnp_ResponseCode)) {
                 // Thanh toán thành công
-                System.out.println("Thanh toán thành công");
+                log.info("[paymentCallback] Thanh toán thành công - thread: {}", Thread.currentThread().getName());
                 paymentResponse.setSuccess(true);
                 paymentResponse.setMessage(getResponseDescription(vnp_ResponseCode));
-                // Cập nhật trạng thái đơn hàng là đã thanh toán
+
+                // Query order 1 lần, dùng chung cho cả 2 task
                 Order order = orderRepository.findById(orderId)
                         .orElseThrow(() -> new DataNotFoundException("Order not found"));
-                order.setTransactionId(vnp_TxnRef);
-                order.setIsPaid(true);
-                orderRepository.save(order);
-//                System.out.println("Order after payment: " + order.getId() + " - " + order.getIsPaid() + " - " + order.getTransactionId());
-                User user = userRepository.findById(order.getUser().getId())
-                        .orElseThrow(() -> new DataNotFoundException("User not found"));
-                CartDto cart = cartService.getCart(user.getId());
-                cartService.clearCart(user.getId(), modelMapper.map(cart, Cart.class));
+
+                // Idempotency: Nếu đã thanh toán rồi thì bỏ qua (tránh duplicate callback)
+                if (Boolean.TRUE.equals(order.getIsPaid())) {
+                    log.info("[paymentCallback] Order {} đã được thanh toán trước đó, bỏ qua", orderId);
+                    paymentResponse.setSuccess(true);
+                    paymentResponse.setMessage("Đơn hàng đã được xử lý");
+                    return paymentResponse;
+                }
+
+                // Song song: Cập nhật order + Xóa cart chạy đồng thời
+                CompletableFuture<Void> updateOrderFuture = CompletableFuture.runAsync(() -> {
+                    log.info("[paymentCallback] Cập nhật order - thread: {}", Thread.currentThread().getName());
+                    order.setTransactionId(vnp_TxnRef);
+                    order.setIsPaid(true);
+                    orderRepository.save(order);
+                }, orderTaskExecutor);
+
+                CompletableFuture<Void> clearCartFuture = CompletableFuture.runAsync(() -> {
+                    log.info("[paymentCallback] Xóa giỏ hàng - thread: {}", Thread.currentThread().getName());
+                    User user = userRepository.findById(order.getUser().getId())
+                            .orElseThrow(() -> new DataNotFoundException("User not found"));
+                    CartDto cart = cartService.getCart(user.getId());
+                    cartService.clearCart(user.getId(), modelMapper.map(cart, Cart.class));
+                }, orderTaskExecutor);
+
+                // Chờ cả hai hoàn thành
+                CompletableFuture.allOf(updateOrderFuture, clearCartFuture).join();
+                log.info("[paymentCallback] Hoàn thành cập nhật order + xóa cart");
 
             } else {
                 // Thanh toán thất bại

@@ -4,6 +4,7 @@ import com.fooddelivery.fooddeliveryapp.constant.OrderStatusType;
 import com.fooddelivery.fooddeliveryapp.constant.PaymentMethodType;
 import com.fooddelivery.fooddeliveryapp.modules.auth.service.AuthService;
 import com.fooddelivery.fooddeliveryapp.modules.cart.service.CartService;
+import com.fooddelivery.fooddeliveryapp.modules.dish.entity.Dish;
 import com.fooddelivery.fooddeliveryapp.modules.dish.repository.DishRepository;
 import com.fooddelivery.fooddeliveryapp.modules.cart.entity.Cart;
 import com.fooddelivery.fooddeliveryapp.modules.cart.entity.CartItem;
@@ -23,6 +24,9 @@ import com.fooddelivery.fooddeliveryapp.modules.user.entity.User;
 import com.fooddelivery.fooddeliveryapp.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,12 +36,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 
 @Service
-@RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
+    private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
+
     private final ModelMapper modelMapper;
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
@@ -47,6 +54,30 @@ public class OrderServiceImpl implements OrderService {
     private final Cart cart;
     private final AuthService authService;
     private final CartService cartService;
+    private final Executor orderTaskExecutor;
+
+    public OrderServiceImpl(
+            ModelMapper modelMapper,
+            OrderRepository orderRepository,
+            OrderDetailRepository orderDetailRepository,
+            DishRepository dishRepository,
+            UserRepository userRepository,
+            RestaurantRepository restaurantRepository,
+            Cart cart,
+            AuthService authService,
+            CartService cartService,
+            @Qualifier("orderTaskExecutor") Executor orderTaskExecutor) {
+        this.modelMapper = modelMapper;
+        this.orderRepository = orderRepository;
+        this.orderDetailRepository = orderDetailRepository;
+        this.dishRepository = dishRepository;
+        this.userRepository = userRepository;
+        this.restaurantRepository = restaurantRepository;
+        this.cart = cart;
+        this.authService = authService;
+        this.cartService = cartService;
+        this.orderTaskExecutor = orderTaskExecutor;
+    }
 
     /*
         -----ORDER----
@@ -55,7 +86,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderResponseDto createOrder(OrderRequestDto orderRequestDto) {
-        System.out.println("OrderRequestDto: " + orderRequestDto);
+        log.info("[createOrder] Bắt đầu tạo đơn hàng - thread: {}", Thread.currentThread().getName());
         User user = authService.getCurrentUser();
         Long userId = user.getId();
         User customer = userRepository.findById(userId)
@@ -69,7 +100,7 @@ public class OrderServiceImpl implements OrderService {
         Restaurant restaurant = restaurantRepository.findById(cart.getRestaurant().getId())
                 .orElseThrow(() -> new RuntimeException("Restaurant not found"));
 
-        Order order =  Order.builder()
+        Order order = Order.builder()
                 .user(customer)
                 .restaurant(restaurant)
                 .status(OrderStatusType.PENDING)
@@ -83,34 +114,52 @@ public class OrderServiceImpl implements OrderService {
                 .orderDetails(new HashSet<>())
                 .build();
 
-
-        if("CASH".equalsIgnoreCase(orderRequestDto.getPaymentMethod())) {
+        if ("CASH".equalsIgnoreCase(orderRequestDto.getPaymentMethod())) {
             order.setIsPaid(false);
         }
 
         Order savedOrder = orderRepository.save(order);
 
-        for(CartItem cartItem : cart.getItems()){
-            OrderDetail orderDetail = new OrderDetail();
-            orderDetail.setDish(dishRepository.findById(cartItem.getDishId())
-                    .orElseThrow(() -> new RuntimeException("Dish not found"))
-            );
-            orderDetail.setOrder(savedOrder);
-            savedOrder.getOrderDetails().add(orderDetail);
-            orderDetail.setQuantity(cartItem.getQuantity());
-            orderDetail.setPrice(cartItem.getPrice());
-            orderDetailRepository.save(orderDetail);
+        // Song song: Lookup tất cả dish đồng thời bằng CompletableFuture
+        List<CompletableFuture<OrderDetail>> futures = cart.getItems().stream()
+                .map(cartItem -> CompletableFuture.supplyAsync(() -> {
+                    log.info("[createOrder] Lookup dish {} - thread: {}", cartItem.getDishId(), Thread.currentThread().getName());
+                    Dish dish = dishRepository.findById(cartItem.getDishId())
+                            .orElseThrow(() -> new RuntimeException("Dish not found: " + cartItem.getDishId()));
+                    return OrderDetail.builder()
+                            .dish(dish)
+                            .order(savedOrder)
+                            .quantity(cartItem.getQuantity())
+                            .price(cartItem.getPrice())
+                            .build();
+                }, orderTaskExecutor))
+                .toList();
 
-        }
+        // Chờ tất cả hoàn thành và thu thập kết quả
+        List<OrderDetail> orderDetails = futures.stream()
+                .map(CompletableFuture::join)
+                .toList();
+
+        // Batch save: 1 query thay vì N queries
+        orderDetailRepository.saveAll(orderDetails);
+        savedOrder.getOrderDetails().addAll(orderDetails);
+        log.info("[createOrder] Đã lưu {} order details", orderDetails.size());
+
         OrderResponseDto orderResponseDto = modelMapper.map(savedOrder, OrderResponseDto.class);
         orderResponseDto.setOrderDetailResponses(
             savedOrder.getOrderDetails().stream()
                     .map(orderDetail -> modelMapper.map(orderDetail, OrderDetailResponse.class))
                     .collect(Collectors.toList())
         );
-        if("CASH".equalsIgnoreCase(orderRequestDto.getPaymentMethod())) {
-            cartService.clearCart(userId, cart);
+
+        // Async: Xóa giỏ hàng chạy nền, không block response
+        if ("CASH".equalsIgnoreCase(orderRequestDto.getPaymentMethod())) {
+            CompletableFuture.runAsync(() -> {
+                log.info("[createOrder] Xóa giỏ hàng async - thread: {}", Thread.currentThread().getName());
+                cartService.clearCart(userId, cart);
+            }, orderTaskExecutor);
         }
+
         return orderResponseDto;
     }
 

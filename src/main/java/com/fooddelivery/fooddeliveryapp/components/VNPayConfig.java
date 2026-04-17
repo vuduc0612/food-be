@@ -3,6 +3,7 @@ package com.fooddelivery.fooddeliveryapp.components;
 import com.fooddelivery.fooddeliveryapp.utils.VNPayUtils;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +16,7 @@ import java.util.TimeZone;
 @Getter
 @Setter
 @Component
+@Log4j2
 public class VNPayConfig {
 
     @Value("${vnpay.pay-url}")
@@ -33,6 +35,10 @@ public class VNPayConfig {
     private String vnpApiUrl;
 
     public Map<String, String> getVNPayConfig(Long orderId) {
+        log.info("vnppayTmnCode: " + this.vnpTmnCode);
+        log.info("vnpaySecretKey: " + this.secretKey);
+        log.info("vnpayApiUrl: " + this.vnpApiUrl);
+        log.info("vnpayReturnUrl: " + this.vnpReturnUrl);
         Map<String, String> vnpParamsMap = new HashMap<>();
         vnpParamsMap.put("vnp_Version", "2.1.0");
         vnpParamsMap.put("vnp_Command", "pay");
@@ -43,8 +49,9 @@ public class VNPayConfig {
         vnpParamsMap.put("vnp_OrderType", "other");
         vnpParamsMap.put("vnp_Locale", "vn");
         vnpParamsMap.put("vnp_ReturnUrl", this.vnpReturnUrl.trim());
-        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+        formatter.setTimeZone(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
         String vnpCreateDate = formatter.format(calendar.getTime());
         vnpParamsMap.put("vnp_CreateDate", vnpCreateDate);
         calendar.add(Calendar.MINUTE, 15);

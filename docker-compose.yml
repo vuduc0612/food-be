@@ -3,7 +3,7 @@ version: '3.8'
 services:
   redis:
     image: redis:latest
-    container_name: food-delivery-redis
+    container_name: food-delivery-redis-v1
     ports:
       - "16380:6379"
     volumes:
@@ -17,7 +17,7 @@ services:
 
   rabbitmq:
     image: rabbitmq:3.13-management
-    container_name: food-delivery-rabbitmq
+    container_name: food-delivery-rabbitmq-v1
     ports:
       - "6000:5672"   # RabbitMQ standard port
       - "15672:15672" # Management interface port
