@@ -27,7 +27,9 @@ public class DeliveryFeeController {
     @PreAuthorize("hasRole('USER')")
     @Operation(summary = "Calculate delivery fee", description = "Returns the delivery fee")
     public ResponseEntity<?> calculateFee(@RequestBody DeliveryFeeRequest request) {
-        DeliveryFeeResponse deliveryFeeResponse = deliveryFeeService.calculateFee(request.getFrom(), request.getTo());
+        DeliveryFeeResponse deliveryFeeResponse = deliveryFeeService.calculateFee(
+                request.getFrom(), request.getTo()
+        );
         return ResponseEntity.ok(
                 ResponseObject.builder()
                         .status(HttpStatus.OK)
